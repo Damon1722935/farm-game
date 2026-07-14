@@ -14,47 +14,20 @@ if (window.Telegram && window.Telegram.WebApp) {
 // --------------------------------------
 
 const cropsConfig = {
-  carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕' },
-  wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾' },
-  strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓' }
+  carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕', growTime: 120 },
+  wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾', growTime: 300 },
+  strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓', growTime: 480 }
 };
 
 const questsConfig = [
-  {
-    id: 'q1',
-    title: 'Прополоть первую грядку',
-    reward: 50,
-    secret: 'Ты делаешь всё правильно. Она точно это заметит.',
-    done: false
-  },
-  {
-    id: 'q2',
-    title: 'Посадить 3 культуры',
-    target: 3,
-    reward: 70,
-    secret: 'Это как первые слова: неловко, но важно сказать.',
-    done: false
-  },
-  {
-    id: 'q3',
-    title: 'Собрать первый урожай',
-    target: 1,
-    reward: 100,
-    secret: 'Иногда самое красивое признание — в простых делах.',
-    done: false
-  },
-  {
-    id: 'q4',
-    title: 'Заработать 200 монет',
-    target: 200,
-    reward: 150,
-    secret: 'Скоро ты сможешь сказать всё, что копил в сердце.',
-    done: false
-  }
+  { id: 'q1', title: 'Прополоть первую грядку', reward: 50, secret: 'Ты делаешь всё правильно. Она точно это заметит.', done: false },
+  { id: 'q2', title: 'Посадить 3 культуры', target: 3, reward: 70, secret: 'Это как первые слова: неловко, но важно сказать.', done: false },
+  { id: 'q3', title: 'Собрать первый урожай', target: 1, reward: 100, secret: 'Иногда самое красивое признание — в простых делах.', done: false },
+  { id: 'q4', title: 'Заработать 200 монет', target: 200, reward: 150, secret: 'Скоро ты сможешь сказать всё, что копил в сердце.', done: false }
 ];
 
 // Сброс данных при смене версии
-const currentVersion = 'v1.6';
+const currentVersion = 'v1.9';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
@@ -84,7 +57,6 @@ let questsProgress = JSON.parse(localStorage.getItem('farm_quests_progress')) ||
   earned_coins: 0
 };
 
-// Текущий ник игрока
 let currentNick = localStorage.getItem('farm_current_nick') || 'Игрок';
 
 // Элементы DOM
@@ -144,33 +116,96 @@ shopBtn.onclick = () => { renderShop(); showScreen('shop-screen'); };
 questsBtn.onclick = () => { renderQuests(); showScreen('quests-screen'); };
 guildBtn.onclick = () => { renderGuildInfo(); showScreen('guild-screen'); };
 
+function getTimeLeft(plantedAt, growTimeSeconds) {
+  const now = Date.now();
+  const elapsed = Math.floor((now - plantedAt) / 1000);
+  const left = Math.max(0, growTimeSeconds - elapsed);
+  return left;
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 function renderShop() {
   shopContainer.innerHTML = '';
   for (const key in cropsConfig) {
     const crop = cropsConfig[key];
     const item = document.createElement('div');
     item.className = 'shop-item';
-    item.innerHTML = `<span class="shop-name">${crop.name}</span><span class="shop-price">${crop.price} монет</span>`;
+    item.innerHTML = `<span class="shop-name">${crop.name}</span><span class="shop-price">${crop.price}💰</span>`;
     item.onclick = () => {
-      selectedCropKey = key;
-      showScreen('field-screen');
-      tg.showAlert(`Выбрано: ${crop.name}. Теперь сажай на поле!`);
+      if (coins >= crop.price) {
+        coins -= crop.price;
+        selectedCropKey = key;
+        tg.showAlert(`Вы выбрали: ${crop.name}. Теперь сажайте на поле.`);
+        showScreen('field-screen');
+        renderField();
+      } else {
+        tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
+      }
     };
     shopContainer.appendChild(item);
   }
 }
 
+function renderQuests() {
+  questsContainer.innerHTML = '';
+  questsConfig.forEach((q, idx) => {
+    const progress = q.target ? questsProgress[q.targetKey || 'planted_total'] : 0;
+    const isDone = q.done || (q.target && progress >= q.target);
+
+    const el = document.createElement('div');
+    el.className = 'shop-item';
+    el.style.borderLeft = isDone ? '4px solid #2ecc71' : '4px solid #f39c12';
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:bold;">${q.title}</span>
+        ${q.target ? `<span>${progress}/${q.target}</span>` : ''}
+      </div>
+      <small style="color:#95a5a6;margin-top:4px;display:block;">${q.secret}</small>
+    `;
+    if (!isDone && q.target) {
+      el.style.opacity = '0.9';
+      el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))';
+    }
+    questsContainer.appendChild(el);
+  });
+}
+
+function renderGuildInfo() {
+  if (guildName) {
+    guildNameEl.textContent = guildName;
+    guildLeaderEl.textContent = guildLeader;
+    guildMembersCountEl.textContent = guildMembers.length;
+    guildLevelEl.textContent = guildLevel;
+    guildPointsEl.textContent = guildPoints;
+    guildActions.style.display = 'block';
+  } else {
+    guildNameEl.textContent = '—';
+    guildLeaderEl.textContent = '—';
+    guildMembersCountEl.textContent = '0';
+    guildLevelEl.textContent = '0';
+    guildPointsEl.textContent = '0';
+    guildActions.style.display = 'none';
+  }
+}
+
+// --- ГЛАВНАЯ ОТРИСОВКА ПОЛЯ (грядок) ---
 function renderField() {
   field.innerHTML = '';
+
   plots.forEach((plotData, i) => {
     const plot = document.createElement('div');
-    plot.className = 'plot'; // Класс, который связывает с CSS (и с картинкой)
+    plot.className = 'plot'; // класс, к которому привязан background-image в CSS
 
     if (plotData) {
-      // plotData — это объект { cropKey, plantedAt }
       const { cropKey, plantedAt } = plotData;
       const crop = cropsConfig[cropKey];
-      
+
+      // Показываем эмодзи культуры
       plot.textContent = crop.emoji;
 
       const timeLeft = getTimeLeft(plantedAt, crop.growTime);
@@ -191,8 +226,8 @@ function renderField() {
         plots[i] = null;
         coins += crop.reward;
 
-        questsProgress['harvested_total'] = (questsProgress['harvested_total'] || 0) + 1;
-        questsProgress['earned_coins'] = (questsProgress['earned_coins'] || 0) + crop.reward;
+        questsProgress.harvested_total = (questsProgress.harvested_total || 0) + 1;
+        questsProgress.earned_coins = (questsProgress.earned_coins || 0) + crop.reward;
 
         saveProgress();
         saveQuests();
@@ -204,7 +239,7 @@ function renderField() {
 
       if (!isReady) {
         plot.style.cursor = 'not-allowed';
-        plot.style.opacity = '0.8';
+        plot.style.opacity = '0.85';
       }
     } else {
       // Пустая грядка
@@ -215,7 +250,7 @@ function renderField() {
           coins -= crop.price;
           plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
 
-          questsProgress['planted_total'] = (questsProgress['planted_total'] || 0) + 1;
+          questsProgress.planted_total = (questsProgress.planted_total || 0) + 1;
           saveQuests();
           saveProgress();
           renderField();
@@ -230,286 +265,58 @@ function renderField() {
 
     field.appendChild(plot);
   });
+
   coinsEl.textContent = coins;
 }
 
-
 function checkQuests() {
-  let newReward = false;
-  let secretText = '';
-
-  const q1 = questsConfig.find(q => q.id === 'q1');
-  if (!q1.done && questsProgress['harvested_total'] >= 1) {
-    q1.done = true;
-    coins += q1.reward;
-    secretText = q1.secret;
-    newReward = true;
-  }
-
-  const q2 = questsConfig.find(q => q.id === 'q2');
-  if (!q2.done) {
-    const plantedTotal = questsProgress['planted_total'] || 0;
-    if (plantedTotal >= q2.target) {
-      q2.done = true;
-      coins += q2.reward;
-      secretText = q2.secret;
-      newReward = true;
-    }
-  }
-
-  const q3 = questsConfig.find(q => q.id === 'q3');
-  if (!q3.done) {
-    const harvestedTotal = questsProgress['harvested_total'] || 0;
-    if (harvestedTotal >= q3.target) {
-      q3.done = true;
-      coins += q3.reward;
-      secretText = q3.secret;
-      newReward = true;
-    }
-  }
-
-  const q4 = questsConfig.find(q => q.id === 'q4');
-  if (!q4.done) {
-    const earnedTotal = questsProgress['earned_coins'] || 0;
-    if (earnedTotal >= q4.target) {
-      q4.done = true;
-      coins += q4.reward;
-      secretText = q4.secret;
-      newReward = true;
-    }
-  }
-
-  if (newReward) {
-    saveProgress();
-    saveQuests();
-    renderField();
-    renderQuests();
-    tg.showAlert(secretText);
-  }
-}
-
-function renderQuests() {
-  questsContainer.innerHTML = '';
+  let changed = false;
   questsConfig.forEach(q => {
-    const isDone = q.done;
-    const item = document.createElement('div');
-    item.className = `quest-item ${isDone ? 'quest-done' : ''}`;
+    if (!q.done) {
+      let progress = 0;
+      if (q.targetKey) progress = questsProgress[q.targetKey] || 0;
+      else if (q.target === 3) progress = questsProgress.planted_total || 0;
+      else if (q.target === 1 && q.id === 'q3') progress = questsProgress.harvested_total || 0;
+      else if (q.target === 200 && q.id === 'q4') progress = questsProgress.earned_coins || 0;
 
-    let progressText = '';
-    if (!isDone) {
-      if (q.id === 'q2') {
-        const planted = questsProgress['planted_total'] || 0;
-        progressText = `${planted}/${q.target}`;
-      } else if (q.id === 'q3') {
-        const harvested = questsProgress['harvested_total'] || 0;
-        progressText = `${harvested}/${q.target}`;
-      } else if (q.id === 'q4') {
-        const earned = questsProgress['earned_coins'] || 0;
-        progressText = `${earned}/${q.target} монет`;
+      if (progress >= (q.target || 0)) {
+        q.done = true;
+        changed = true;
+        saveQuests();
+        tg.showAlert(q.secret);
       }
     }
-
-    item.innerHTML = `
-      <span class="quest-name">${q.title}</span>
-      ${progressText ? `<span class="quest-progress">${progressText}</span>` : ''}
-      <span class="quest-reward">${q.reward} монет</span>
-    `;
-    item.style.cursor = 'default';
-    questsContainer.appendChild(item);
   });
+  if (changed) renderQuests();
 }
 
-function renderGuildInfo() {
-  const statsBlock = document.getElementById('guild-stats');
-
-  // ГЛАВНОЕ: если гильдии нет — сразу скрываем статистику и выходим
-  if (!guildName) {
-    statsBlock.style.display = 'none';
-    joinGuildBtn.style.display = 'inline-block';
-    guildActions.style.display = 'none';
-    disbandGuildBtn.style.display = 'none';
-    return; // дальше не выполняем — нечего рендерить
-  }
-
-  // Гильдия есть — показываем статистику
-  statsBlock.style.display = 'block';
-  guildNameEl.textContent = guildName;
-  guildLeaderEl.textContent = guildLeader || 'Не назначен';
-  guildMembersCountEl.textContent = guildMembers.length;
-  guildLevelEl.textContent = guildLevel;
-  guildPointsEl.textContent = guildPoints;
-
-  const isInGuild = guildMembers.includes(currentNick);
-
-  // Блок действий (выход/роспуск) — только если игрок в гильдии
-  guildActions.style.display = isInGuild ? 'block' : 'none';
-
-  // Кнопка «Распустить» — только для лидера
-  disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
-
-  // Кнопка «Вступить» — скрываем, если игрок уже в гильдии
-  joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
-}
-
+// Таймер обновления времени на грядках (каждую секунду)
+setInterval(() => {
+  const plotsInDom = document.querySelectorAll('.plot');
+  plotsInDom.forEach((el, idx) => {
+    const data = plots[idx];
+    if (data) {
+      const crop = cropsConfig[data.cropKey];
+      const timeLeft = getTimeLeft(data.plantedAt, crop.growTime);
+      const timerEl = el.querySelector('.plot-timer');
+      if (timerEl) {
+        timerEl.textContent = timeLeft <= 0 ? 'ГОТОВО' : formatTime(timeLeft);
+        if (timeLeft <= 0) {
+          el.style.opacity = '1';
+          el.style.cursor = 'pointer';
+        } else {
+          el.style.opacity = '0.85';
+          el.style.cursor = 'not-allowed';
+        }
+      }
+    }
+  });
+}, 1000);
 
 // Инициализация
-if (plots.length !== 6) {
-  plots = Array(6).fill(null);
-  saveProgress();
-}
-renderShop();
 renderField();
+renderShop();
 renderQuests();
 renderGuildInfo();
 
-// Посадка
-field.addEventListener('click', (e) => {
-  const plot = e.target.closest('.plot');
-  if (!plot) return;
-  const index = Array.from(field.children).indexOf(plot);
-  if (plots[index]) return; // уже растёт
-
-  const crop = cropsConfig[selectedCropKey];
-  if (coins >= crop.price) {
-    coins -= crop.price;
-    plots[index] = selectedCropKey;
-
-    questsProgress['planted_total'] = (questsProgress['planted_total'] || 0) + 1;
-    saveQuests();
-
-    saveProgress();
-    renderField();
-    checkQuests();
-  } else {
-    tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
-  }
-});
-
-// Сбор урожая
-harvestBtn.onclick = () => {
-  let harvested = false;
-  plots.forEach((cropKey, i) => {
-    if (cropKey) {
-      const crop = cropsConfig[cropKey];
-      coins += crop.reward;
-
-      questsProgress['harvested_total'] = (questsProgress['harvested_total'] || 0) + 1;
-      questsProgress['earned_coins'] = (questsProgress['earned_coins'] || 0) + crop.reward;
-
-      plots[i] = null;
-      harvested = true;
-    }
-  });
-
-  if (harvested) {
-    saveProgress();
-    saveQuests();
-    renderField();
-    checkQuests();
-  } else {
-    tg.showAlert('Нечего собирать!');
-  }
-};
-
-closeBtn.onclick = () => tg.close();
-
-createGuildBtn.onclick = () => {
-  const name = prompt('Придумай название гильдии:');
-  if (!name || name.trim() === '') return;
-
-  const myNick = prompt('Твой никнейм в гильдии:', 'Игрок');
-  const finalNick = myNick && myNick.trim() ? myNick.trim() :
-  'Игрок';
-  
-  currentNick = finalNick;
-  saveCurrentNick();
-
-  guildName = name.trim();
-  guildLeader = finalNick;
-  guildMembers = [finalNick];
-  guildLevel = 1;
-  guildPoints = 0;
-
-  saveGuild();
-  renderGuildInfo();
-  tg.showAlert(`Гильдия «${guildName}» создана! Ты — лидер. Участников: 1.`);
-};
-
-joinGuildBtn.onclick = () => {
-  // Пункт 1: проверяем, существует ли гильдия
-  if (!guildName) {
-    tg.showAlert('Сейчас нет активной гильдии, в которую можно вступить. Сначала кто‑то должен её создать.');
-    return;
-  }
-
-  const name = prompt('Введи свой никнейм для вступления в гильдию:', 'Гость');
-  const nick = name && name.trim() ? name.trim() : 'Гость';
-
-  if (nick === '') {
-    tg.showAlert('Никнейм не может быть пустым.');
-    return;
-  }
-
-  if (guildMembers.includes(nick)) {
-    tg.showAlert('Такой ник уже есть в гильдии!');
-    return;
-  }
-
-  // Если человек уже в какой‑то гильдии (по логике игры — только одна гильдия возможна),
-  // можно либо не пускать, либо сначала предложить выйти. Здесь делаем проще: просто добавляем.
-  currentNick = nick;
-  saveCurrentNick();
-
-  guildMembers.push(nick);
-  saveGuild();
-  renderGuildInfo(); // тут сразу сработает скрытие кнопки «Вступить», т.к. игрок теперь участник
-  tg.showAlert(`Ты вступил в гильдию «${guildName}»! Теперь участников: ${guildMembers.length}.`);
-};
-
-leaveGuildBtn.onclick = () => {
-  if (!guildName || !guildMembers.includes(currentNick)) {
-    tg.showAlert('Ты не состоишь в гильдии.');
-    return;
-  }
-
-  if (currentNick === guildLeader) {
-    // Лидер уходит — гильдия распускается
-    guildName = null;
-    guildLeader = null;
-    guildMembers = [];
-    guildLevel = 0;
-    guildPoints = 0;
-
-    saveGuild();
-    renderGuildInfo(); // здесь сработает скрытие статистики
-    tg.showAlert('Ты был лидером и распустил гильдию. Всё сброшено.');
-    return;
-  }
-
-  // Обычный участник выходит
-  guildMembers = guildMembers.filter(nick => nick !== currentNick);
-  saveGuild();
-  renderGuildInfo(); // статистика останется, но ты уже не участник
-  tg.showAlert('Ты вышел из гильдии.');
-};
-
-disbandGuildBtn.onclick = () => {
-  if (currentNick !== guildLeader) {
-    tg.showAlert('Только лидер может распустить гильдию!');
-    return;
-  }
-  if (!confirm('Ты точно хочешь распустить гильдию? Все данные гильдии будут удалены.')) {
-    return;
-  }
-
-  guildName = null;
-  guildLeader = null;
-  guildMembers = [];
-  guildLevel = 0;
-  guildPoints = 0;
-
-  saveGuild();
-  renderGuildInfo(); // вот здесь статистика точно исчезнет
-  tg.showAlert('Гильдия распущена. Теперь можно создать новую или вступить в другую.');
-};
 
