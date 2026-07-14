@@ -66,8 +66,28 @@
       transition: transform 0.1s, background 0.2s;
       background-color: #ecf0f1;
       color: #7f8c8d;
+      /* ДОБАВЛЕНО: чтобы таймер позиционировался относительно клетки */
+      position: relative;
+      overflow: hidden;
     }
+
     .plot:hover { transform: scale(1.05); }
+
+    /* ТАЙМЕР НА ГРЯДКЕ — ВСТАВИТЬ СЮДА */
+    .plot-timer {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      white-space: nowrap;
+      pointer-events: none;
+    }
 
     /* Кнопки навигации */
     .btn-group {
@@ -221,10 +241,10 @@
 
     // --- Конфигурация ---
     const cropsConfig = {
-      carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕' },
-      wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾' },
-      strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓' }
-    };
+  carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕', growTime: 120 },   // 2 минуты
+  wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾', growTime: 300 },   // 5 минут
+  strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓', growTime: 480 } // 8 минут
+};
 
     const questsConfig = [
       { id: 'q1', title: 'Прополоть первую грядку', reward: 50, secret: 'Ты делаешь всё правильно. Она точно это заметит.', done: false },
@@ -252,6 +272,14 @@
     // --- Переменные состояния ---
     let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
     let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
+
+// Конвертация старого формата в новый (если там просто ключи, а не объекты)
+plots = plots.map(p => {
+  if (p && typeof p === 'string') {
+    return { cropKey: p, plantedAt: Date.now() };
+  }
+  return p;
+});
     let selectedCropKey = 'carrot';
 
     let guildName = localStorage.getItem('farm_guild_name') || null;
@@ -296,9 +324,9 @@
 
     // --- Функции сохранения ---
     function saveProgress() {
-      localStorage.setItem('farm_coins', coins.toString());
-      localStorage.setItem('farm_plots', JSON.stringify(plots));
-    }
+  localStorage.setItem('farm_coins', coins.toString());
+  localStorage.setItem('farm_plots', JSON.stringify(plots));
+}
     function saveGuild() {
       localStorage.setItem('farm_guild_name', guildName);
       localStorage.setItem('farm_guild_leader', guildLeader);
@@ -312,7 +340,18 @@
     function saveCurrentNick() {
       localStorage.setItem('farm_current_nick', currentNick);
     }
+function getTimeLeft(plantedAt, growTimeSeconds) {
+  const now = Date.now();
+  const elapsed = Math.floor((now - plantedAt) / 1000);
+  const left = Math.max(0, growTimeSeconds - elapsed);
+  return left;
+}
 
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
     // --- Навигация ---
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -327,37 +366,77 @@
 
     // --- Отрисовка поля ---
     function renderField() {
-      field.innerHTML = '';
-      plots.forEach((cropKey, i) => {
-        const plot = document.createElement('div');
-        plot.className = 'plot';
-        
-        if (cropKey) {
-          const crop = cropsConfig[cropKey];
-          plot.textContent = crop.emoji;
-          if (cropKey === 'carrot') plot.style.background = '#ffca28';
-          if (cropKey === 'wheat') plot.style.background = '#c5e1a5';
-          if (cropKey === 'strawberry') plot.style.background = '#ffcdd2';
-        } else {
-          plot.style.background = '#ecf0f1';
-          plot.textContent = '🌱';
-        }
+  field.innerHTML = '';
+  plots.forEach((plotData, i) => {
+    const plot = document.createElement('div');
+    plot.className = 'plot';
 
-        plot.onclick = () => {
-          if (cropKey) return; // Если уже что-то растёт, не сажаем
-          plots[i] = selectedCropKey;
-          questsProgress.planted_total = (questsProgress.planted_total || 0) + 1;
-          saveProgress();
-          saveQuests();
-          checkQuests();
-          renderField();
-          tg.showAlert(`Ты посадил ${cropsConfig[selectedCropKey].name}!`);
-        };
-        field.appendChild(plot);
-      });
-      coinsEl.textContent = coins;
+    if (plotData) {
+      // Это грядка с растением (объект {cropKey, plantedAt})
+      const { cropKey, plantedAt } = plotData;
+      const crop = cropsConfig[cropKey];
+      plot.textContent = crop.emoji;
+
+      // Цвет грядки
+      if (cropKey === 'carrot') plot.style.background = '#ffca28';
+      else if (cropKey === 'wheat') plot.style.background = '#c5e1a5';
+      else if (cropKey === 'strawberry') plot.style.background = '#ffcdd2';
+
+      // Считаем, сколько осталось расти
+      const timeLeft = getTimeLeft(plantedAt, crop.growTime);
+      const isReady = timeLeft <= 0;
+
+      // Рисуем таймер
+      const timerEl = document.createElement('span');
+      timerEl.className = 'plot-timer';
+      timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
+      plot.appendChild(timerEl);
+
+      // Клик: если не готово — ничего не делаем; если готово — собираем
+      plot.onclick = () => {
+        if (!isReady) {
+          tg.showAlert('Ещё рано — растение не выросло!');
+          return;
+        }
+        // Сбор урожая с этой одной грядки
+        plots[i] = null;
+        coins += crop.reward;
+        questsProgress.harvested_total = (questsProgress.harvested_total || 0) + 1;
+        questsProgress.earned_coins = (questsProgress.earned_coins || 0) + crop.reward;
+
+        saveProgress();
+        saveQuests();
+        checkQuests();
+        renderField();
+        tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
+      };
+
+      // Если не готово — делаем курсор «неактивным»
+      if (!isReady) {
+        plot.style.cursor = 'not-allowed';
+        plot.style.opacity = '0.8';
+      }
+    } else {
+      // Пустая грядка
+      plot.style.background = '#ecf0f1';
+      plot.textContent = '🌱';
+
+      plot.onclick = () => {
+        plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
+        questsProgress.planted_total = (questsProgress.planted_total || 0) + 1;
+        saveProgress();
+        saveQuests();
+        checkQuests();
+        renderField();
+        tg.showAlert(`Ты посадил ${cropsConfig[selectedCropKey].name}!`);
+      };
     }
 
+    field.appendChild(plot);
+  });
+
+  coinsEl.textContent = coins;
+}
     // --- Магазин ---
     function renderShop() {
       shopContainer.innerHTML = '';
@@ -623,6 +702,13 @@
         tg.showAlert('На поле ничего не растёт — сначала посади что-нибудь!');
       }
     };
+    setInterval(() => {
+  // Перерисовываем поле, чтобы обновить таймеры
+  const currentScreen = document.querySelector('.screen.active');
+  if (currentScreen && currentScreen.id === 'field-screen') {
+    renderField();
+  }
+}, 1000);
   </script>
 </body>
 </html>
