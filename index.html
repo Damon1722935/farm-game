@@ -109,7 +109,10 @@
   cursor: pointer;
   transition: transform 0.1s, filter 0.2s;
 
-  /* ТОЛЬКО картинка, никакого background-color */
+  /* Для теста: яркий цвет, чтобы понять, применяется ли стиль */
+  background-color: #ff00ff;
+
+  /* Картинка */
   background-image: url('img/man.png');
   background-size: cover;
   background-position: center;
@@ -118,6 +121,7 @@
   position: relative;
   overflow: hidden;
 }
+
 
   .plot:hover {
     transform: scale(1.05);
