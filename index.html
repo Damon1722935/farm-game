@@ -57,14 +57,15 @@
         padding: 12px;
         border-radius: 8px;
         margin-bottom: 8px;
-        cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
+      .quest-item { cursor: default; } /* теперь не кликабельный */
       .shop-name, .quest-name { font-weight: 500; }
       .shop-price, .quest-reward { color: #d32f2f; }
       .quest-done { opacity: 0.6; text-decoration: line-through; }
+      .quest-progress { margin-left: 8px; font-size: 14px; color: #555; }
 
       /* экраны */
       .screen { display: none; }
@@ -124,3 +125,4 @@
     <script src="./script.js"></script>
   </body>
 </html>
+
