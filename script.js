@@ -265,13 +265,13 @@ function renderQuests() {
 function renderGuildInfo() {
   const statsBlock = document.getElementById('guild-stats');
 
-  // Если гильдии нет — скрываем статистику, показываем только кнопки
+  // ГЛАВНОЕ: если гильдии нет — сразу скрываем статистику и выходим
   if (!guildName) {
     statsBlock.style.display = 'none';
-    joinGuildBtn.style.display = 'inline-block'; // кнопка «Вступить» видна (но по логике она сработает только если гильдия есть)
-    guildActions.style.display = 'none';        // блок действий скрыт
-    disbandGuildBtn.style.display = 'none';     // кнопка роспуска скрыта
-    return;
+    joinGuildBtn.style.display = 'inline-block';
+    guildActions.style.display = 'none';
+    disbandGuildBtn.style.display = 'none';
+    return; // дальше не выполняем — нечего рендерить
   }
 
   // Гильдия есть — показываем статистику
@@ -284,7 +284,7 @@ function renderGuildInfo() {
 
   const isInGuild = guildMembers.includes(currentNick);
 
-  // Блок действий (выход/роспуск) показываем только если игрок в гильдии
+  // Блок действий (выход/роспуск) — только если игрок в гильдии
   guildActions.style.display = isInGuild ? 'block' : 'none';
 
   // Кнопка «Распустить» — только для лидера
@@ -415,8 +415,8 @@ leaveGuildBtn.onclick = () => {
     return;
   }
 
-  // Если уходит лидер — гильдия распускается
   if (currentNick === guildLeader) {
+    // Лидер уходит — гильдия распускается
     guildName = null;
     guildLeader = null;
     guildMembers = [];
@@ -424,15 +424,15 @@ leaveGuildBtn.onclick = () => {
     guildPoints = 0;
 
     saveGuild();
-    renderGuildInfo();
+    renderGuildInfo(); // здесь сработает скрытие статистики
     tg.showAlert('Ты был лидером и распустил гильдию. Всё сброшено.');
     return;
   }
 
-  // Обычный участник просто выходит
+  // Обычный участник выходит
   guildMembers = guildMembers.filter(nick => nick !== currentNick);
   saveGuild();
-  renderGuildInfo();
+  renderGuildInfo(); // статистика останется, но ты уже не участник
   tg.showAlert('Ты вышел из гильдии.');
 };
 
@@ -452,7 +452,7 @@ disbandGuildBtn.onclick = () => {
   guildPoints = 0;
 
   saveGuild();
-  renderGuildInfo();
+  renderGuildInfo(); // вот здесь статистика точно исчезнет
   tg.showAlert('Гильдия распущена. Теперь можно создать новую или вступить в другую.');
 };
 
