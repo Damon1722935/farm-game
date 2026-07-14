@@ -19,7 +19,6 @@ const cropsConfig = {
   strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓' }
 };
 
-// Задания: id, условие, прогресс, награда, секрет
 const questsConfig = [
   {
     id: 'q1',
@@ -54,13 +53,16 @@ const questsConfig = [
   }
 ];
 
-// Сброс данных при смене версии (чтобы старые сохранения не ломали логику)
-const currentVersion = 'v1.3';
+// Сброс данных при смене версии
+const currentVersion = 'v1.4';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
   localStorage.removeItem('farm_plots');
   localStorage.removeItem('farm_quests_progress');
+  localStorage.removeItem('farm_guild_name');
+  localStorage.removeItem('farm_guild_leader');
+  localStorage.removeItem('farm_guild_members');
   localStorage.setItem('farm_version', currentVersion);
   console.log('🧹 Данные сброшены под новую версию игры.');
 }
@@ -70,10 +72,11 @@ let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null
 let selectedCropKey = 'carrot';
 
 let guildName = localStorage.getItem('farm_guild_name') || null;
+let guildLeader = localStorage.getItem('farm_guild_leader') || null;
+let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || []; // массив ников
 let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
 let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
 
-// Прогресс по заданиям: храним только счётчики
 let questsProgress = JSON.parse(localStorage.getItem('farm_quests_progress')) || {
   planted_total: 0,
   harvested_total: 0,
@@ -92,6 +95,8 @@ const questsBtn = document.getElementById('questsBtn');
 
 const guildScreen = document.getElementById('guild-screen');
 const guildNameEl = document.getElementById('guild-name');
+const guildLeaderEl = document.getElementById('guild-leader');
+const guildMembersCountEl = document.getElementById('guild-members-count');
 const guildLevelEl = document.getElementById('guild-level');
 const guildPointsEl = document.getElementById('guild-points');
 const createGuildBtn = document.getElementById('create-guild-btn');
@@ -109,6 +114,8 @@ function saveProgress() {
 }
 function saveGuild() {
   localStorage.setItem('farm_guild_name', guildName);
+  localStorage.setItem('farm_guild_leader', guildLeader);
+  localStorage.setItem('farm_guild_members', JSON.stringify(guildMembers));
   localStorage.setItem('farm_guild_level', guildLevel.toString());
   localStorage.setItem('farm_guild_points', guildPoints.toString());
 }
@@ -160,12 +167,10 @@ function renderField() {
   coinsEl.textContent = coins;
 }
 
-// Проверка и выдача наград за задания (вызывается после действий игрока)
 function checkQuests() {
   let newReward = false;
   let secretText = '';
 
-  // q1: «прополоть» — считаем выполненным, если уже был хотя бы один сбор урожая
   const q1 = questsConfig.find(q => q.id === 'q1');
   if (!q1.done && questsProgress['harvested_total'] >= 1) {
     q1.done = true;
@@ -174,7 +179,6 @@ function checkQuests() {
     newReward = true;
   }
 
-  // q2: посадить N культур
   const q2 = questsConfig.find(q => q.id === 'q2');
   if (!q2.done) {
     const plantedTotal = questsProgress['planted_total'] || 0;
@@ -186,7 +190,6 @@ function checkQuests() {
     }
   }
 
-  // q3: собрать N урожаев
   const q3 = questsConfig.find(q => q.id === 'q3');
   if (!q3.done) {
     const harvestedTotal = questsProgress['harvested_total'] || 0;
@@ -198,7 +201,6 @@ function checkQuests() {
     }
   }
 
-  // q4: заработать N монет (считаем только заработанные, не стартовые)
   const q4 = questsConfig.find(q => q.id === 'q4');
   if (!q4.done) {
     const earnedTotal = questsProgress['earned_coins'] || 0;
@@ -245,8 +247,6 @@ function renderQuests() {
       ${progressText ? `<span class="quest-progress">${progressText}</span>` : ''}
       <span class="quest-reward">${q.reward} монет</span>
     `;
-
-    // Никаких onclick: задания выполняются только действиями в игре
     item.style.cursor = 'default';
     questsContainer.appendChild(item);
   });
@@ -254,6 +254,8 @@ function renderQuests() {
 
 function renderGuildInfo() {
   guildNameEl.textContent = guildName || 'Не выбрана';
+  guildLeaderEl.textContent = guildLeader || 'Не назначен';
+  guildMembersCountEl.textContent = guildMembers.length;
   guildLevelEl.textContent = guildLevel;
   guildPointsEl.textContent = guildPoints;
 }
@@ -273,20 +275,19 @@ field.addEventListener('click', (e) => {
   const plot = e.target.closest('.plot');
   if (!plot) return;
   const index = Array.from(field.children).indexOf(plot);
-  if (plots[index]) return; // уже растёт
+  if (plots[index]) return;
 
   const crop = cropsConfig[selectedCropKey];
   if (coins >= crop.price) {
     coins -= crop.price;
     plots[index] = selectedCropKey;
-    
-    // Увеличиваем счётчик посаженных культур
+
     questsProgress['planted_total'] = (questsProgress['planted_total'] || 0) + 1;
     saveQuests();
 
     saveProgress();
     renderField();
-    checkQuests(); // проверяем, не выполнилось ли задание
+    checkQuests();
   } else {
     tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
   }
@@ -299,8 +300,7 @@ harvestBtn.onclick = () => {
     if (cropKey) {
       const crop = cropsConfig[cropKey];
       coins += crop.reward;
-      
-      // Увеличиваем счётчики: собранный урожай и заработанные монеты
+
       questsProgress['harvested_total'] = (questsProgress['harvested_total'] || 0) + 1;
       questsProgress['earned_coins'] = (questsProgress['earned_coins'] || 0) + crop.reward;
 
@@ -313,7 +313,7 @@ harvestBtn.onclick = () => {
     saveProgress();
     saveQuests();
     renderField();
-    checkQuests(); // проверяем задания после сбора
+    checkQuests();
   } else {
     tg.showAlert('Нечего собирать!');
   }
@@ -324,20 +324,42 @@ closeBtn.onclick = () => tg.close();
 createGuildBtn.onclick = () => {
   const name = prompt('Придумай название гильдии:');
   if (!name || name.trim() === '') return;
+  
+  // Ты становишься лидером, и сразу 1 участник (ты сам)
   guildName = name.trim();
+  const myNick = prompt('Твой никнейм в гильдии:', 'Игрок');
+  const finalNick = myNick && myNick.trim() ? myNick.trim() : 'Игрок';
+  
+  guildLeader = finalNick;
+  guildMembers = [finalNick];
   guildLevel = 1;
+  
   saveGuild();
   renderGuildInfo();
-  tg.showAlert('Гильдия создана: ' + guildName);
+  tg.showAlert(`Гильдия «${guildName}» создана! Ты — лидер. Участников: 1.`);
 };
 
 joinGuildBtn.onclick = () => {
-  const name = prompt('Введи название гильдии для вступления:');
-  if (!name || name.trim() === '') return;
-  guildName = name.trim();
-  guildLevel = 1;
+  if (!guildName) {
+    tg.showAlert('Сначала создай гильдию, чтобы в неё можно было вступать!');
+    return;
+  }
+  const name = prompt('Введи свой никнейм для вступления в гильдию:', 'Гость');
+  const nick = name && name.trim() ? name.trim() : 'Гость';
+  
+  // Проверяем, нет ли уже такого ника (простая защита от дублей)
+  if (guildMembers.includes(nick)) {
+    tg.showAlert('Такой ник уже есть в гильдии!');
+    return;
+  }
+  
+  guildMembers.push(nick);
+  // Лидер остаётся тем же, не меняем
+  guildLevel = Math.max(1, guildLevel); // на всякий случай
+  
   saveGuild();
   renderGuildInfo();
-  tg.showAlert('Ты вступил в гильдию: ' + guildName);
+  tg.showAlert(`Ты вступил в гильдию «${guildName}»! Теперь участников: ${guildMembers.length}.`);
 };
+
 
