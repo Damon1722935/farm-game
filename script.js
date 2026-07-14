@@ -54,7 +54,7 @@ const questsConfig = [
 ];
 
 // Сброс данных при смене версии
-const currentVersion = 'v1.4';
+const currentVersion = 'v1.5';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
@@ -63,6 +63,7 @@ if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_guild_name');
   localStorage.removeItem('farm_guild_leader');
   localStorage.removeItem('farm_guild_members');
+  localStorage.removeItem('farm_current_nick');
   localStorage.setItem('farm_version', currentVersion);
   console.log('🧹 Данные сброшены под новую версию игры.');
 }
@@ -73,7 +74,7 @@ let selectedCropKey = 'carrot';
 
 let guildName = localStorage.getItem('farm_guild_name') || null;
 let guildLeader = localStorage.getItem('farm_guild_leader') || null;
-let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || []; // массив ников
+let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || [];
 let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
 let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
 
@@ -82,6 +83,9 @@ let questsProgress = JSON.parse(localStorage.getItem('farm_quests_progress')) ||
   harvested_total: 0,
   earned_coins: 0
 };
+
+// Текущий ник игрока (чтобы понимать, кто нажимает кнопки)
+let currentNick = localStorage.getItem('farm_current_nick') || 'Игрок';
 
 // Элементы DOM
 const coinsEl = document.getElementById('coins');
@@ -101,6 +105,9 @@ const guildLevelEl = document.getElementById('guild-level');
 const guildPointsEl = document.getElementById('guild-points');
 const createGuildBtn = document.getElementById('create-guild-btn');
 const joinGuildBtn = document.getElementById('join-guild-btn');
+const leaveGuildBtn = document.getElementById('leave-guild-btn');
+const disbandGuildBtn = document.getElementById('disband-guild-btn');
+const guildActions = document.getElementById('guild-actions');
 
 const shopContainer = document.getElementById('shop');
 const questsContainer = document.getElementById('quests');
@@ -121,6 +128,9 @@ function saveGuild() {
 }
 function saveQuests() {
   localStorage.setItem('farm_quests_progress', JSON.stringify(questsProgress));
+}
+function saveCurrentNick() {
+  localStorage.setItem('farm_current_nick', currentNick);
 }
 
 function showScreen(screenId) {
@@ -258,6 +268,17 @@ function renderGuildInfo() {
   guildMembersCountEl.textContent = guildMembers.length;
   guildLevelEl.textContent = guildLevel;
   guildPointsEl.textContent = guildPoints;
+
+  // Показываем блок действий, если игрок в гильдии
+  const isInGuild = !!guildName && guildMembers.includes(currentNick);
+  guildActions.style.display = isInGuild ? 'block' : 'none';
+
+  // Кнопка «Распустить» видна только лидеру
+  if (isInGuild && guildLeader === currentNick) {
+    disbandGuildBtn.style.display = 'inline-block';
+  } else {
+    disbandGuildBtn.style.display = 'none';
+  }
 }
 
 // Инициализация
@@ -275,7 +296,7 @@ field.addEventListener('click', (e) => {
   const plot = e.target.closest('.plot');
   if (!plot) return;
   const index = Array.from(field.children).indexOf(plot);
-  if (plots[index]) return;
+  if (plots[index]) return; // уже растёт
 
   const crop = cropsConfig[selectedCropKey];
   if (coins >= crop.price) {
@@ -325,11 +346,13 @@ createGuildBtn.onclick = () => {
   const name = prompt('Придумай название гильдии:');
   if (!name || name.trim() === '') return;
   
-  // Ты становишься лидером, и сразу 1 участник (ты сам)
-  guildName = name.trim();
   const myNick = prompt('Твой никнейм в гильдии:', 'Игрок');
   const finalNick = myNick && myNick.trim() ? myNick.trim() : 'Игрок';
   
+  currentNick = finalNick;
+  saveCurrentNick();
+
+  guildName = name.trim();
   guildLeader = finalNick;
   guildMembers = [finalNick];
   guildLevel = 1;
@@ -347,19 +370,69 @@ joinGuildBtn.onclick = () => {
   const name = prompt('Введи свой никнейм для вступления в гильдию:', 'Гость');
   const nick = name && name.trim() ? name.trim() : 'Гость';
   
-  // Проверяем, нет ли уже такого ника (простая защита от дублей)
   if (guildMembers.includes(nick)) {
     tg.showAlert('Такой ник уже есть в гильдии!');
     return;
   }
   
-  guildMembers.push(nick);
-  // Лидер остаётся тем же, не меняем
-  guildLevel = Math.max(1, guildLevel); // на всякий случай
+  currentNick = nick;
+  saveCurrentNick();
   
+  guildMembers.push(nick);
   saveGuild();
   renderGuildInfo();
   tg.showAlert(`Ты вступил в гильдию «${guildName}»! Теперь участников: ${guildMembers.length}.`);
 };
 
+leaveGuildBtn.onclick = () => {
+  if (!guildName || !guildMembers.includes(currentNick)) {
+    tg.showAlert('Ты не состоишь в гильдии.');
+    return;
+  }
 
+  // Если уходишь лидер — гильдия распускается автоматически
+  if (currentNick === guildLeader) {
+    // Сбрасываем всё
+    guildName = null;
+    guildLeader = null;
+    guildMembers = [];
+    guildLevel = 0;
+    guildPoints = 0;
+    
+    saveGuild();
+    renderGuildInfo();
+    tg.showAlert('Ты был лидером и распустил гильдию. Всё сброшено.');
+  } else {
+    // Обычный участник просто выходит
+    guildMembers = guildMembers.filter(nick => nick !== currentNick);
+    saveGuild();
+    renderGuildInfo();
+    tg.showAlert('Ты вышел из гильдии.');
+  }
+};
+
+disbandGuildBtn.onclick = () => {
+  if (currentNick !== guildLeader) {
+    tg.showAlert('Только лидер может распустить гильдию!');
+    return;
+  }
+  if (!confirm('Ты точно хочешь распустить гильдию? Все данные гильдии будут удалены.')) {
+    return;
+  }
+
+  guildName =
+}
+  if (!confirm('Ты точно хочешь распустить гильдию? Все данные гильдии будут удалены.')) {
+    return;
+  }
+
+  guildName = null;
+  guildLeader = null;
+  guildMembers = [];
+  guildLevel = 0;
+  guildPoints = 0;
+
+  saveGuild();
+  renderGuildInfo();
+  tg.showAlert('Гильдия распущена. Теперь можно создать новую или вступить в другую.');
+};
