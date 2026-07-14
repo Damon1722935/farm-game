@@ -80,10 +80,6 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
-    .btn-plant { background: #2ecc71; color: white; }
-    .btn-harvest { background: #f39c12; color: white; }
-    .btn-close { background: #95a5a6; color: white; }
-
     #field {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -148,16 +144,6 @@
     .shop-name { font-weight: bold; }
     .shop-price { color: #f1c40f; }
 
-    #guild-stats {
-      background: rgba(255,255,255,0.9);
-      color: #2c3e50;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-    #guild-stats p { margin: 6px 0; }
-    #guild-actions { margin-top: 15px; }
-
     .header-bar {
       padding: 10px 15px;
       border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -183,15 +169,12 @@
     <div class="btn-group">
       <button id="fieldBtn">🌾 Поле</button>
       <button id="shopBtn">🛍 Магазин</button>
-      <button id="guildBtn">🏰 Гильдия</button>
-      <button id="questsBtn">⭐ Квесты</button>
     </div>
 
     <!-- ЭКРАН: Поле -->
     <div id="field-screen" class="screen active">
       <h3>Поле</h3>
       <div id="field"></div>
-      <button id="harvestBtn" class="btn-harvest" style="width:100%;">Собрать урожай</button>
     </div>
 
     <!-- ЭКРАН: Магазин -->
@@ -199,34 +182,8 @@
       <h3>Магазин семян</h3>
       <div id="shop"></div>
     </div>
-
-    <!-- ЭКРАН: Квесты -->
-    <div id="quests-screen" class="screen">
-      <h3>Квесты</h3>
-      <div id="quests"></div>
-    </div>
-
-    <!-- ЭКРАН: Гильдия -->
-    <div id="guild-screen" class="screen">
-      <h3>Гильдия</h3>
-      <div id="guild-stats">
-        <p>Название: <span id="guild-name">—</span></p>
-        <p>Лидер: <span id="guild-leader">—</span></p>
-        <p>Участников: <span id="guild-members-count">0</span></p>
-        <p>Уровень: <span id="guild-level">0</span></p>
-        <p>Очки: <span id="guild-points">0</span></p>
-      </div>
-      <div id="guild-actions">
-        <button id="create-guild-btn">Создать гильдию</button>
-        <button id="join-guild-btn">Вступить в гильдию</button>
-        <button id="leave-guild-btn">Покинуть гильдию</button>
-        <button id="disband-guild-btn">Распустить гильдию</button>
-      </div>
-    </div>
   </div>
 
-  <!-- Подключаем твой JS файл -->
   <script src="script.js"></script>
 </body>
 </html>
-
