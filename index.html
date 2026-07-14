@@ -118,9 +118,20 @@
     <p><b>Уровень гильдии:</b> <span id="guild-level">0</span></p>
     <p><b>Очки гильдии:</b> <span id="guild-points">0</span></p>
   </div>
+
+  <!-- Кнопки действий -->
   <button id="create-guild-btn" class="btn-plant" style="margin-top:10px;">Создать гильдию</button>
   <button id="join-guild-btn" class="btn-harvest" style="margin-top:5px;">Вступить в гильдию</button>
+
+  <div id="guild-actions" style="margin-top:15px; display:none;">
+    <!-- Эта кнопка видна всегда, если игрок в гильдии -->
+    <button id="leave-guild-btn" class="btn-close" style="width:auto; padding:8px 16px;">Выйти из гильдии</button>
+
+    <!-- Эту кнопку видим только если ты лидер -->
+    <button id="disband-guild-btn" class="btn-plant" style="width:auto; margin-left:8px; padding:8px 16px; background:#d32f2f;">Распустить гильдию</button>
+  </div>
 </div>
+
 
     <button id="closeBtn" class="btn-close">Закрыть игру</button>
 
