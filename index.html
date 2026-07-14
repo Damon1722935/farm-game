@@ -6,10 +6,40 @@
   <title>Ферма</title>
   <style>
     body {
-  background-image: url('img/gross.jpg');
-}img
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-image: url('img/orig.jpg');   /* <-- вот тут ставим orig.jpg */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+      }
+    /* 2. Затемнение поверх фона */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;    /* на весь экран */
+      background: rgba(44, 62, 80, 0.6);       /* цвет + прозрачность (0.6 = 60% затемнения) */
+      z-index: 1;                              /* слой поверх фона, но под контентом */
+      pointer-events: none;                    /* чтобы клики проходили сквозь него */
+    }
 .plot {
+  height: 60px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.2s;
+
+  /* <-- вот тут ставим orig.jpg для грядки */
   background-image: url('img/man.png');
+  background-size: cover;
+  background-position: center;
+
+  position: relative;
+  overflow: hidden;
 }
 
     /* Экраны: показываем только .active */
