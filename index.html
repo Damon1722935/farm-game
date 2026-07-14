@@ -99,24 +99,25 @@
 
   /* Грядки — теперь тут одна правильная версия */
   .plot {
-    height: 60px;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 24px;
-    cursor: pointer;
-    transition: transform 0.1s, filter 0.2s;
+  height: 60px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  transition: transform 0.1s, filter 0.2s;
 
-    /* Картинка грядки */
-    background-image: url('img/man.png');
-    background-size: cover;
-    background-position: center;
+  /* ТОЛЬКО картинка, никакого background-color */
+  background-image: url('img/man.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 
-    position: relative;
-    overflow: hidden;
-  }
+  position: relative;
+  overflow: hidden;
+}
 
   .plot:hover {
     transform: scale(1.05);
