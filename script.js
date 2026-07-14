@@ -168,9 +168,6 @@ function renderField() {
     if (cropKey) {
       const crop = cropsConfig[cropKey];
       plot.textContent = crop.emoji;
-      if (cropKey === 'carrot') plot.style.background = '#ffca28';
-      if (cropKey === 'wheat') plot.style.background = '#c5e1a5';
-      if (cropKey === 'strawberry') plot.style.background = '#ffcdd2';
     }
     field.appendChild(plot);
   });
