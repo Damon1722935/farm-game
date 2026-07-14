@@ -9,7 +9,7 @@ if (window.Telegram && window.Telegram.WebApp) {
     ready: () => console.log('Telegram SDK не загружен, эмуляция'),
     showAlert: (text) => alert(text),
     close: () => window.close() || console.log('Закрыть недоступно')
-  };img
+  };
 }
 // --------------------------------------
 
