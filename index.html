@@ -29,13 +29,13 @@
 
   /* 3. Контейнер игры — слой 2 (выше затемнения) */
   .game-container {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 15px;
-  }
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 480px;
+  margin: 20px auto;          /* 20px сверху и снизу, по центру */
+  padding: 0;                  /* убираем лишние внутренние отступы, если были */
+}
 
   /* Экраны: показываем только .active */
   .screen {
