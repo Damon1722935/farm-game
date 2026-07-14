@@ -9,7 +9,9 @@ const cropsConfig = {
 };
 
 // Загрузка прогресса
-let coins = parseInt(localStorage.getItem('farm_coins')) || 0;
+// Если монет ещё нет (первый запуск) — даём 100 монет, иначе берём сохранённые
+let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
+
 let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
 let selectedCropKey = 'carrot'; // по умолчанию
 
