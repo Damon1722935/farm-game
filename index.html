@@ -190,6 +190,7 @@
         <p><b>Очки гильдии:</b> <span id="guild-points">0</span></p>
       </div>
 
+      <!-- Кнопки действий с гильдией -->
       <button id="create-guild-btn" class="btn-plant" style="margin-top:10px;">Создать гильдию</button>
       <button id="join-guild-btn" class="btn-harvest" style="margin-top:5px;">Вступить в гильдию</button>
 
@@ -229,7 +230,7 @@
     ];
 
     // Сброс данных при смене версии
-    const currentVersion = 'v1.8';
+    const currentVersion = 'v1.9';
     const storedVersion = localStorage.getItem('farm_version');
     if (storedVersion !== currentVersion) {
       localStorage.removeItem('farm_coins');
@@ -350,6 +351,7 @@
         plot.onclick = () => {
           if (cropKey) return;
           plots[i] = selectedCropKey;
+          questsProgress.planted_total = (questsProgress.planted_total ||
           questsProgress.planted_total = (questsProgress.planted_total || 0) + 1;
           saveProgress();
           saveQuests();
@@ -448,38 +450,31 @@
     }
 
     function renderGuildInfo() {
-  // Если гильдии нет вообще — показываем кнопки создания и вступления
-  if (!guildName) {
-    statsBlock.style.display = 'none';
-    createGuildBtn.style.display = 'inline-block';
-    joinGuildBtn.style.display = 'inline-block';
-    guildActions.style.display = 'none';
-    disbandGuildBtn.style.display = 'none';
-    return;
-  }
+      if (!guildName) {
+        statsBlock.style.display = 'none';
+        createGuildBtn.style.display = 'inline-block';
+        joinGuildBtn.style.display = 'inline-block';
+        guildActions.style.display = 'none';
+        disbandGuildBtn.style.display = 'none';
+        return;
+      }
 
-  // Гильдия есть — показываем статистику
-  statsBlock.style.display = 'block';
-  guildNameEl.textContent = guildName;
-  guildLeaderEl.textContent = guildLeader || 'Не назначен';
-  guildMembersCountEl.textContent = guildMembers.length;
-  guildLevelEl.textContent = guildLevel;
-  guildPointsEl.textContent = guildPoints;
+      statsBlock.style.display = 'block';
+      guildNameEl.textContent = guildName;
+      guildLeaderEl.textContent = guildLeader || 'Не назначен';
+      guildMembersCountEl.textContent = guildMembers.length;
+      guildLevelEl.textContent = guildLevel;
+      guildPointsEl.textContent = guildPoints;
 
-  const isInGuild = guildMembers.includes(currentNick);
+      const isInGuild = guildMembers.includes(currentNick);
+      guildActions.style.display = isInGuild ? 'block' : 'none';
+      disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
 
-  // Блок действий (выход/роспуск) показываем только если игрок в гильдии
-  guildActions.style.display = isInGuild ? 'block' : 'none';
+      // Если гильдия существует — кнопку «Создать» скрываем всегда
+      createGuildBtn.style.display = guildName ? 'none' : 'inline-block';
 
-  // Кнопка «Распустить» — только для лидера
-  disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
-
-  // ГЛАВНОЕ: кнопку «Создать гильдию» скрываем, если гильдия уже есть (даже если ты в ней не состоишь)
-  createGuildBtn.style.display = guildName ? 'none' : 'inline-block';
-
-  // Кнопка «Вступить» показываем только если НЕ в гильдии
-  joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
-}
+      joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
+    }
 
     createGuildBtn.onclick = () => {
       const name = prompt('Придумай название гильдии:');
@@ -515,7 +510,6 @@
         tg.showAlert('Никнейм не может быть пустым.');
         return;
       }
-
       if (guildMembers.includes(nick)) {
         tg.showAlert('Такой ник уже есть в гильдии!');
         return;
@@ -523,7 +517,6 @@
 
       currentNick = nick;
       saveCurrentNick();
-
       guildMembers.push(nick);
       saveGuild();
       renderGuildInfo();
@@ -614,4 +607,3 @@
   </script>
 </body>
 </html>
-
