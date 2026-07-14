@@ -263,24 +263,37 @@ function renderQuests() {
 }
 
 function renderGuildInfo() {
-  guildNameEl.textContent = guildName || 'Не выбрана';
+  const statsBlock = document.getElementById('guild-stats');
+
+  // Если гильдии нет — скрываем статистику, показываем только кнопки
+  if (!guildName) {
+    statsBlock.style.display = 'none';
+    joinGuildBtn.style.display = 'inline-block'; // кнопка «Вступить» видна (но по логике она сработает только если гильдия есть)
+    guildActions.style.display = 'none';        // блок действий скрыт
+    disbandGuildBtn.style.display = 'none';     // кнопка роспуска скрыта
+    return;
+  }
+
+  // Гильдия есть — показываем статистику
+  statsBlock.style.display = 'block';
+  guildNameEl.textContent = guildName;
   guildLeaderEl.textContent = guildLeader || 'Не назначен';
   guildMembersCountEl.textContent = guildMembers.length;
   guildLevelEl.textContent = guildLevel;
   guildPointsEl.textContent = guildPoints;
 
-  // Проверяем, состоит ли текущий игрок в гильдии
-  const isInGuild = !!guildName && guildMembers.includes(currentNick);
+  const isInGuild = guildMembers.includes(currentNick);
 
-  // Показываем блок действий только если игрок в гильдии
+  // Блок действий (выход/роспуск) показываем только если игрок в гильдии
   guildActions.style.display = isInGuild ? 'block' : 'none';
 
-  // Кнопка «Распустить» видна только если ты лидер
+  // Кнопка «Распустить» — только для лидера
   disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
 
-  // Кнопка «Вступить» скрываем, если игрок уже в гильдии
+  // Кнопка «Вступить» — скрываем, если игрок уже в гильдии
   joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
 }
+
 
 // Инициализация
 if (plots.length !== 6) {
