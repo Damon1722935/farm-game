@@ -20,24 +20,23 @@ const cropsConfig = {
 };
 
 // Сброс данных при смене версии
-const currentVersion = 'v2.0';
+const currentVersion = 'v2.1';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
   localStorage.removeItem('farm_plots');
+  // Убрали всё лишнее: guild, quests и т.п.
   localStorage.setItem('farm_version', currentVersion);
-  console.log('🧹 Данные сброшены под новую версию игры.');
+  console.log('🧹 Данные сброшены под новую версию игры (квесты удалены).');
 }
 
 let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
 let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
 let selectedCropKey = 'carrot';
 
-// Элементы DOM
+// Элементы DOM — оставили только нужные
 const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
-const closeBtn = document.getElementById('closeBtn');
-const guildBtn = document.getElementById('guildBtn'); // можно удалить из HTML, если не нужен
 const fieldBtn = document.getElementById('fieldBtn');
 const shopBtn = document.getElementById('shopBtn');
 const shopContainer = document.getElementById('shop');
@@ -91,6 +90,7 @@ function renderShop() {
   }
 }
 
+// --- ГЛАВНАЯ ОТРИСОВКА ПОЛЯ (грядок) ---
 function renderField() {
   field.innerHTML = '';
 
