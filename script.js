@@ -67,6 +67,25 @@ if (plots.length !== 6) {
 }
 renderShop();
 renderField();
+// Обработка клика по грядке для посадки
+field.addEventListener('click', (e) => {
+  const plot = e.target.closest('.plot');
+  if (!plot) return;
+
+  // Если на грядке уже что-то растёт — ничего не делаем
+  if (plots[Array.from(field.children).indexOf(plot)]) return;
+
+  const crop = cropsConfig[selectedCropKey];
+  if (coins >= crop.price) {
+    coins -= crop.price;
+    const index = Array.from(field.children).indexOf(plot);
+    plots[index] = selectedCropKey;
+    saveProgress();
+    renderField();
+  } else {
+    tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
+  }
+});
 
 harvestBtn.onclick = () => {
   let harvested = false;
