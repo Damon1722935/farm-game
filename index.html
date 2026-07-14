@@ -448,27 +448,38 @@
     }
 
     function renderGuildInfo() {
-      if (!guildName) {
-        statsBlock.style.display = 'none';
-        createGuildBtn.style.display = 'inline-block';
-        joinGuildBtn.style.display = 'inline-block';
-        guildActions.style.display = 'none';
-        disbandGuildBtn.style.display = 'none';
-        return;
-      }
+  // Если гильдии нет вообще — показываем кнопки создания и вступления
+  if (!guildName) {
+    statsBlock.style.display = 'none';
+    createGuildBtn.style.display = 'inline-block';
+    joinGuildBtn.style.display = 'inline-block';
+    guildActions.style.display = 'none';
+    disbandGuildBtn.style.display = 'none';
+    return;
+  }
 
-      statsBlock.style.display = 'block';
-      guildNameEl.textContent = guildName;
-      guildLeaderEl.textContent = guildLeader || 'Не назначен';
-      guildMembersCountEl.textContent = guildMembers.length;
-      guildLevelEl.textContent = guildLevel;
-      guildPointsEl.textContent = guildPoints;
+  // Гильдия есть — показываем статистику
+  statsBlock.style.display = 'block';
+  guildNameEl.textContent = guildName;
+  guildLeaderEl.textContent = guildLeader || 'Не назначен';
+  guildMembersCountEl.textContent = guildMembers.length;
+  guildLevelEl.textContent = guildLevel;
+  guildPointsEl.textContent = guildPoints;
 
-      const isInGuild = guildMembers.includes(currentNick);
-      guildActions.style.display = isInGuild ? 'block' : 'none';
-      disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
-      joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
-    }
+  const isInGuild = guildMembers.includes(currentNick);
+
+  // Блок действий (выход/роспуск) показываем только если игрок в гильдии
+  guildActions.style.display = isInGuild ? 'block' : 'none';
+
+  // Кнопка «Распустить» — только для лидера
+  disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
+
+  // ГЛАВНОЕ: кнопку «Создать гильдию» скрываем, если гильдия уже есть (даже если ты в ней не состоишь)
+  createGuildBtn.style.display = guildName ? 'none' : 'inline-block';
+
+  // Кнопка «Вступить» показываем только если НЕ в гильдии
+  joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
+}
 
     createGuildBtn.onclick = () => {
       const name = prompt('Придумай название гильдии:');
