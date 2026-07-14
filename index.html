@@ -99,25 +99,10 @@
 
   /* Грядки — теперь тут одна правильная версия */
 .plot {
-  height: 60px;
-  border: 2px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 24px;
-  cursor: pointer;
-  transition: transform 0.1s, filter 0.2s;
-
-  /* ГЛАВНОЕ: убираем любой фоновый цвет, оставляем только картинку */
-  background-color: transparent; 
-  background-image: url('img/man.png');
+  background-color: red !important;
+  /* background-image: url('img/man.png'); <-- закомментируй или удали пока */
   background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-
-  position: relative;
-  overflow: hidden;
+  /* остальные стили оставь */
 }
 
 .plot:hover {
