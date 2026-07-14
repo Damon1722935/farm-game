@@ -91,7 +91,6 @@
       margin: 15px 0;
     }
 
-    /* ГЛАВНОЕ: стиль грядки с картинкой */
     .plot {
       height: 60px;
       border: 2px solid rgba(255,255,255,0.2);
@@ -103,7 +102,6 @@
       cursor: pointer;
       transition: transform 0.1s, filter 0.2s;
 
-      /* Картинка на грядке — именно это должно работать */
       background-color: transparent !important;
       background-image: url('img/man.png') !important;
       background-size: cover !important;
@@ -117,6 +115,11 @@
     .plot:hover {
       transform: scale(1.05);
       filter: brightness(1.1);
+    }
+
+    .plot.ready {
+      border-color: #f1c40f;
+      box-shadow: 0 0 12px rgba(241, 196, 15, 0.4);
     }
 
     .plot-timer {
@@ -165,6 +168,15 @@
       justify-content: space-between;
       align-items: center;
     }
+
+    /* --- СТИЛЬ НАЗВАНИЯ ФЕРМЫ (крупно и белым) --- */
+    .header-bar span:first-child {
+      font-size: 1.8rem;
+      color: #ffffff;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
     .coins-display {
       font-size: 1.2rem;
       font-weight: bold;
@@ -190,6 +202,7 @@
     <div id="field-screen" class="screen active">
       <h3>Поле</h3>
       <div id="field"></div>
+      <button id="harvestBtn" class="btn-harvest" style="width:100%; margin-top:10px;">Собрать урожай</button>
     </div>
 
     <!-- ЭКРАН: Магазин -->
@@ -217,7 +230,7 @@
     </div>
   </div>
 
-  <!-- Подключаем твой JS файл -->
   <script src="script.js"></script>
 </body>
 </html>
+
