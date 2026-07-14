@@ -162,20 +162,77 @@ function renderShop() {
 
 function renderField() {
   field.innerHTML = '';
-  plots.forEach((cropKey, i) => {
+  plots.forEach((plotData, i) => {
     const plot = document.createElement('div');
-    plot.className = 'plot'; // класс остаётся, фон теперь берётся из CSS
+    plot.className = 'plot'; // Класс, который связывает с CSS (и с картинкой)
 
-    if (cropKey) {
+    if (plotData) {
+      // plotData — это объект { cropKey, plantedAt }
+      const { cropKey, plantedAt } = plotData;
       const crop = cropsConfig[cropKey];
+      
       plot.textContent = crop.emoji;
-      // ❌ Строки с plot.style.background удалены — теперь работает CSS
+
+      const timeLeft = getTimeLeft(plantedAt, crop.growTime);
+      const isReady = timeLeft <= 0;
+
+      // Таймер
+      const timerEl = document.createElement('span');
+      timerEl.className = 'plot-timer';
+      timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
+      plot.appendChild(timerEl);
+
+      plot.onclick = () => {
+        if (!isReady) {
+          tg.showAlert('Ещё рано — растение не выросло!');
+          return;
+        }
+        // Сбор урожая
+        plots[i] = null;
+        coins += crop.reward;
+
+        questsProgress['harvested_total'] = (questsProgress['harvested_total'] || 0) + 1;
+        questsProgress['earned_coins'] = (questsProgress['earned_coins'] || 0) + crop.reward;
+
+        saveProgress();
+        saveQuests();
+        renderField();
+        checkQuests();
+
+        tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
+      };
+
+      if (!isReady) {
+        plot.style.cursor = 'not-allowed';
+        plot.style.opacity = '0.8';
+      }
+    } else {
+      // Пустая грядка
+      plot.textContent = '🌱';
+      plot.onclick = () => {
+        const crop = cropsConfig[selectedCropKey];
+        if (coins >= crop.price) {
+          coins -= crop.price;
+          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
+
+          questsProgress['planted_total'] = (questsProgress['planted_total'] || 0) + 1;
+          saveQuests();
+          saveProgress();
+          renderField();
+          checkQuests();
+
+          tg.showAlert(`Ты посадил ${crop.name}!`);
+        } else {
+          tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у тебя ${coins}.`);
+        }
+      };
     }
 
     field.appendChild(plot);
   });
   coinsEl.textContent = coins;
 }
+
 
 function checkQuests() {
   let newReward = false;
