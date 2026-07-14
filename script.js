@@ -54,7 +54,7 @@ const questsConfig = [
 ];
 
 // Сброс данных при смене версии
-const currentVersion = 'v1.5';
+const currentVersion = 'v1.6';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
@@ -84,7 +84,7 @@ let questsProgress = JSON.parse(localStorage.getItem('farm_quests_progress')) ||
   earned_coins: 0
 };
 
-// Текущий ник игрока (чтобы понимать, кто нажимает кнопки)
+// Текущий ник игрока
 let currentNick = localStorage.getItem('farm_current_nick') || 'Игрок';
 
 // Элементы DOM
@@ -269,16 +269,17 @@ function renderGuildInfo() {
   guildLevelEl.textContent = guildLevel;
   guildPointsEl.textContent = guildPoints;
 
-  // Показываем блок действий, если игрок в гильдии
+  // Проверяем, состоит ли текущий игрок в гильдии
   const isInGuild = !!guildName && guildMembers.includes(currentNick);
+
+  // Показываем блок действий только если игрок в гильдии
   guildActions.style.display = isInGuild ? 'block' : 'none';
 
-  // Кнопка «Распустить» видна только лидеру
-  if (isInGuild && guildLeader === currentNick) {
-    disbandGuildBtn.style.display = 'inline-block';
-  } else {
-    disbandGuildBtn.style.display = 'none';
-  }
+  // Кнопка «Распустить» видна только если ты лидер
+  disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
+
+  // Кнопка «Вступить» скрываем, если игрок уже в гильдии
+  joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
 }
 
 // Инициализация
@@ -345,9 +346,10 @@ closeBtn.onclick = () => tg.close();
 createGuildBtn.onclick = () => {
   const name = prompt('Придумай название гильдии:');
   if (!name || name.trim() === '') return;
-  
+
   const myNick = prompt('Твой никнейм в гильдии:', 'Игрок');
-  const finalNick = myNick && myNick.trim() ? myNick.trim() : 'Игрок';
+  const finalNick = myNick && myNick.trim() ? myNick.trim() :
+  'Игрок';
   
   currentNick = finalNick;
   saveCurrentNick();
@@ -356,31 +358,41 @@ createGuildBtn.onclick = () => {
   guildLeader = finalNick;
   guildMembers = [finalNick];
   guildLevel = 1;
-  
+  guildPoints = 0;
+
   saveGuild();
   renderGuildInfo();
   tg.showAlert(`Гильдия «${guildName}» создана! Ты — лидер. Участников: 1.`);
 };
 
 joinGuildBtn.onclick = () => {
+  // Пункт 1: проверяем, существует ли гильдия
   if (!guildName) {
-    tg.showAlert('Сначала создай гильдию, чтобы в неё можно было вступать!');
+    tg.showAlert('Сейчас нет активной гильдии, в которую можно вступить. Сначала кто‑то должен её создать.');
     return;
   }
+
   const name = prompt('Введи свой никнейм для вступления в гильдию:', 'Гость');
   const nick = name && name.trim() ? name.trim() : 'Гость';
-  
+
+  if (nick === '') {
+    tg.showAlert('Никнейм не может быть пустым.');
+    return;
+  }
+
   if (guildMembers.includes(nick)) {
     tg.showAlert('Такой ник уже есть в гильдии!');
     return;
   }
-  
+
+  // Если человек уже в какой‑то гильдии (по логике игры — только одна гильдия возможна),
+  // можно либо не пускать, либо сначала предложить выйти. Здесь делаем проще: просто добавляем.
   currentNick = nick;
   saveCurrentNick();
-  
+
   guildMembers.push(nick);
   saveGuild();
-  renderGuildInfo();
+  renderGuildInfo(); // тут сразу сработает скрытие кнопки «Вступить», т.к. игрок теперь участник
   tg.showAlert(`Ты вступил в гильдию «${guildName}»! Теперь участников: ${guildMembers.length}.`);
 };
 
@@ -390,25 +402,25 @@ leaveGuildBtn.onclick = () => {
     return;
   }
 
-  // Если уходишь лидер — гильдия распускается автоматически
+  // Если уходит лидер — гильдия распускается
   if (currentNick === guildLeader) {
-    // Сбрасываем всё
     guildName = null;
     guildLeader = null;
     guildMembers = [];
     guildLevel = 0;
     guildPoints = 0;
-    
+
     saveGuild();
     renderGuildInfo();
     tg.showAlert('Ты был лидером и распустил гильдию. Всё сброшено.');
-  } else {
-    // Обычный участник просто выходит
-    guildMembers = guildMembers.filter(nick => nick !== currentNick);
-    saveGuild();
-    renderGuildInfo();
-    tg.showAlert('Ты вышел из гильдии.');
+    return;
   }
+
+  // Обычный участник просто выходит
+  guildMembers = guildMembers.filter(nick => nick !== currentNick);
+  saveGuild();
+  renderGuildInfo();
+  tg.showAlert('Ты вышел из гильдии.');
 };
 
 disbandGuildBtn.onclick = () => {
@@ -416,12 +428,6 @@ disbandGuildBtn.onclick = () => {
     tg.showAlert('Только лидер может распустить гильдию!');
     return;
   }
-  if (!confirm('Ты точно хочешь распустить гильдию? Все данные гильдии будут удалены.')) {
-    return;
-  }
-
-  guildName =
-}
   if (!confirm('Ты точно хочешь распустить гильдию? Все данные гильдии будут удалены.')) {
     return;
   }
@@ -436,3 +442,4 @@ disbandGuildBtn.onclick = () => {
   renderGuildInfo();
   tg.showAlert('Гильдия распущена. Теперь можно создать новую или вступить в другую.');
 };
+
