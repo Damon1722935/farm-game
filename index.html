@@ -109,10 +109,8 @@
   cursor: pointer;
   transition: transform 0.1s, filter 0.2s;
 
-  /* Для теста: яркий цвет, чтобы понять, применяется ли стиль */
-  background-color: #ff00ff;
-
-  /* Картинка */
+  /* ГЛАВНОЕ: убираем любой фоновый цвет, оставляем только картинку */
+  background-color: transparent; 
   background-image: url('img/man.png');
   background-size: cover;
   background-position: center;
@@ -122,11 +120,11 @@
   overflow: hidden;
 }
 
+.plot:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
 
-  .plot:hover {
-    transform: scale(1.05);
-    filter: brightness(1.1);
-  }
 
   /* Таймер на грядке */
   .plot-timer {
