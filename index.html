@@ -225,435 +225,290 @@
   </div>
 
   <script>
-    // --- Инициализация Telegram WebApp ---
-    let tg;
-    if (window.Telegram && window.Telegram.WebApp) {
-      tg = window.Telegram.WebApp;
-      tg.ready();
-    } else {
-      console.warn('⚠️ Режим тестирования вне Telegram.');
-      tg = {
-        ready: () => console.log('Telegram SDK не загружен, эмуляция'),
-        showAlert: (text) => alert(text),
-        close: () => window.close() || console.log('Закрыть недоступно')
-      };
-    }
-
-    // --- Конфигурация ---
-    const cropsConfig = {
-  carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕', growTime: 120 },   // 2 минуты
-  wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾', growTime: 300 },   // 5 минут
-  strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓', growTime: 480 } // 8 минут
-};
-
-    const questsConfig = [
-      { id: 'q1', title: 'Прополоть первую грядку', reward: 50, secret: 'Ты делаешь всё правильно. Она точно это заметит.', done: false },
-      { id: 'q2', title: 'Посадить 3 культуры', target: 3, reward: 70, secret: 'Это как первые слова: неловко, но важно сказать.', done: false },
-      { id: 'q3', title: 'Собрать первый урожай', target: 1, reward: 100, secret: 'Иногда самое красивое признание — в простых делах.', done: false },
-      { id: 'q4', title: 'Заработать 200 монет', target: 200, reward: 150, secret: 'Скоро ты сможешь сказать всё, что копил в сердце.', done: false }
-    ];
-
-    // Сброс данных при смене версии
-    const currentVersion = 'v1.9';
-    const storedVersion = localStorage.getItem('farm_version');
-    if (storedVersion !== currentVersion) {
-      localStorage.removeItem('farm_coins');
-      localStorage.removeItem('farm_plots');
-      localStorage.removeItem('farm_quests_progress');
-      localStorage.removeItem('farm_guild_name');
-      localStorage.removeItem('farm_guild_leader');
-      localStorage.removeItem('farm_guild_members');
-      localStorage.removeItem('farm_guild_level');
-      localStorage.removeItem('farm_guild_points');
-      localStorage.removeItem('farm_current_nick');
-      localStorage.setItem('farm_version', currentVersion);
-    }
-
-    // --- Переменные состояния ---
-    let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
-    let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
-
-// Конвертация старого формата в новый (если там просто ключи, а не объекты)
-plots = plots.map(p => {
-  if (p && typeof p === 'string') {
-    return { cropKey: p, plantedAt: Date.now() };
-  }
-  return p;
-});
-    let selectedCropKey = 'carrot';
-
-    let guildName = localStorage.getItem('farm_guild_name') || null;
-    let guildLeader = localStorage.getItem('farm_guild_leader') || null;
-    let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || [];
-    let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
-    let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
-
-    let questsProgress = JSON.parse(localStorage.getItem('farm_quests_progress')) || {
-      planted_total: 0,
-      harvested_total: 0,
-      earned_coins: 0
+  // --- Инициализация Telegram WebApp ---
+  let tg;
+  if (window.Telegram && window.Telegram.WebApp) {
+    tg = window.Telegram.WebApp;
+    tg.ready();
+  } else {
+    console.warn('⚠️ Режим тестирования вне Telegram.');
+    tg = {
+      ready: () => console.log('Telegram SDK не загружен, эмуляция'),
+      showAlert: (text) => alert(text),
+      close: () => window.close() || console.log('Закрыть недоступно')
     };
+  }
 
-    let currentNick = localStorage.getItem('farm_current_nick') || 'Игрок';
+  // --- Конфигурация культур ---
+  const cropsConfig = {
+    carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕', growTime: 120 },   // 2 минуты
+    wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾', growTime: 300 },   // 5 минут
+    strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓', growTime: 480 } // 8 минут
+  };
 
-    // --- Элементы DOM ---
-    const coinsEl = document.getElementById('coins');
-    const field = document.getElementById('field');
-    const harvestBtn = document.getElementById('harvestBtn');
-    
-    const guildBtn = document.getElementById('guildBtn');
-    const fieldBtn = document.getElementById('fieldBtn');
-    const shopBtn = document.getElementById('shopBtn');
-    const questsBtn = document.getElementById('questsBtn');
+  // Сброс данных при смене версии
+  const currentVersion = 'v2.0-no-quests';
+  const storedVersion = localStorage.getItem('farm_version');
+  if (storedVersion !== currentVersion) {
+    localStorage.removeItem('farm_coins');
+    localStorage.removeItem('farm_plots');
+    localStorage.removeItem('farm_guild_name');
+    localStorage.removeItem('farm_guild_leader');
+    localStorage.removeItem('farm_guild_members');
+    localStorage.removeItem('farm_guild_level');
+    localStorage.removeItem('farm_guild_points');
+    localStorage.removeItem('farm_current_nick');
+    localStorage.setItem('farm_version', currentVersion);
+  }
 
-    const guildScreen = document.getElementById('guild-screen');
-    const guildNameEl = document.getElementById('guild-name');
-    const guildLeaderEl = document.getElementById('guild-leader');
-    const guildMembersCountEl = document.getElementById('guild-members-count');
-    const guildLevelEl = document.getElementById('guild-level');
-    const guildPointsEl = document.getElementById('guild-points');
-    const createGuildBtn = document.getElementById('create-guild-btn');
-    const joinGuildBtn = document.getElementById('join-guild-btn');
-    const leaveGuildBtn = document.getElementById('leave-guild-btn');
-    const disbandGuildBtn = document.getElementById('disband-guild-btn');
-    const guildActions = document.getElementById('guild-actions');
-    const statsBlock = document.getElementById('guild-stats');
+  // --- Переменные состояния ---
+  let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
+  let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
 
-    const shopContainer = document.getElementById('shop');
-    const questsContainer = document.getElementById('quests');
-
-    // --- Функции сохранения ---
-    function saveProgress() {
-  localStorage.setItem('farm_coins', coins.toString());
-  localStorage.setItem('farm_plots', JSON.stringify(plots));
-}
-    function saveGuild() {
-      localStorage.setItem('farm_guild_name', guildName);
-      localStorage.setItem('farm_guild_leader', guildLeader);
-      localStorage.setItem('farm_guild_members', JSON.stringify(guildMembers));
-      localStorage.setItem('farm_guild_level', guildLevel.toString());
-      localStorage.setItem('farm_guild_points', guildPoints.toString());
+  // Конвертация старого формата (строки) в новый (объекты)
+  plots = plots.map(p => {
+    if (p && typeof p === 'string') {
+      return { cropKey: p, plantedAt: Date.now() };
     }
-    function saveQuests() {
-      localStorage.setItem('farm_quests_progress', JSON.stringify(questsProgress));
-    }
-    function saveCurrentNick() {
-      localStorage.setItem('farm_current_nick', currentNick);
-    }
-function getTimeLeft(plantedAt, growTimeSeconds) {
-  const now = Date.now();
-  const elapsed = Math.floor((now - plantedAt) / 1000);
-  const left = Math.max(0, growTimeSeconds - elapsed);
-  return left;
-}
-
-function formatTime(seconds) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
-    // --- Навигация ---
-    function showScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-      const screen = document.getElementById(screenId);
-      if (screen) screen.classList.add('active');
-    }
-
-    fieldBtn.onclick = () => showScreen('field-screen');
-    shopBtn.onclick = () => { renderShop(); showScreen('shop-screen'); };
-    questsBtn.onclick = () => { renderQuests(); showScreen('quests-screen'); };
-    guildBtn.onclick = () => { renderGuildInfo(); showScreen('guild-screen'); };
-
-    // --- Отрисовка поля ---
-    function renderField() {
-  field.innerHTML = '';
-  plots.forEach((plotData, i) => {
-    const plot = document.createElement('div');
-    plot.className = 'plot';
-
-    if (plotData) {
-      // Это грядка с растением (объект {cropKey, plantedAt})
-      const { cropKey, plantedAt } = plotData;
-      const crop = cropsConfig[cropKey];
-      plot.textContent = crop.emoji;
-
-      // Цвет грядки
-      if (cropKey === 'carrot') plot.style.background = '#ffca28';
-      else if (cropKey === 'wheat') plot.style.background = '#c5e1a5';
-      else if (cropKey === 'strawberry') plot.style.background = '#ffcdd2';
-
-      // Считаем, сколько осталось расти
-      const timeLeft = getTimeLeft(plantedAt, crop.growTime);
-      const isReady = timeLeft <= 0;
-
-      // Рисуем таймер
-      const timerEl = document.createElement('span');
-      timerEl.className = 'plot-timer';
-      timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
-      plot.appendChild(timerEl);
-
-      // Клик: если не готово — ничего не делаем; если готово — собираем
-      plot.onclick = () => {
-        if (!isReady) {
-          tg.showAlert('Ещё рано — растение не выросло!');
-          return;
-        }
-        // Сбор урожая с этой одной грядки
-        plots[i] = null;
-        coins += crop.reward;
-        questsProgress.harvested_total = (questsProgress.harvested_total || 0) + 1;
-        questsProgress.earned_coins = (questsProgress.earned_coins || 0) + crop.reward;
-
-        saveProgress();
-        saveQuests();
-        checkQuests();
-        renderField();
-        tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
-      };
-
-      // Если не готово — делаем курсор «неактивным»
-      if (!isReady) {
-        plot.style.cursor = 'not-allowed';
-        plot.style.opacity = '0.8';
-      }
-    } else {
-      // Пустая грядка
-      plot.style.background = '#ecf0f1';
-      plot.textContent = '🌱';
-
-      plot.onclick = () => {
-        plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
-        questsProgress.planted_total = (questsProgress.planted_total || 0) + 1;
-        saveProgress();
-        saveQuests();
-        checkQuests();
-        renderField();
-        tg.showAlert(`Ты посадил ${cropsConfig[selectedCropKey].name}!`);
-      };
-    }
-
-    field.appendChild(plot);
+    return p;
   });
 
-  coinsEl.textContent = coins;
-}
-    // --- Магазин ---
-    function renderShop() {
-      shopContainer.innerHTML = '';
-      for (const key in cropsConfig) {
-        const crop = cropsConfig[key];
-        const item = document.createElement('div');
-        item.className = 'shop-item';
-        item.innerHTML = `<span class="shop-name">${crop.name}</span><span class="shop-price">${crop.price} монет</span>`;
-        item.onclick = () => {
-          if (coins < crop.price) {
-            tg.showAlert('Не хватает монет!');
+  let selectedCropKey = 'carrot';
+
+  let guildName = localStorage.getItem('farm_guild_name') || null;
+  let guildLeader = localStorage.getItem('farm_guild_leader') || null;
+  let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || [];
+  let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
+  let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
+
+  let currentNick = localStorage.getItem('farm_current_nick') || 'Игрок';
+
+  // --- Элементы DOM ---
+  const coinsEl = document.getElementById('coins');
+  const field = document.getElementById('field');
+
+  const guildBtn = document.getElementById('guildBtn');
+  const fieldBtn = document.getElementById('fieldBtn');
+  const shopBtn = document.getElementById('shopBtn');
+
+  const guildScreen = document.getElementById('guild-screen');
+  const guildNameEl = document.getElementById('guild-name');
+  const guildLeaderEl = document.getElementById('guild-leader');
+  const guildMembersCountEl = document.getElementById('guild-members-count');
+  const guildLevelEl = document.getElementById('guild-level');
+  const guildPointsEl = document.getElementById('guild-points');
+  const createGuildBtn = document.getElementById('create-guild-btn');
+  const joinGuildBtn = document.getElementById('join-guild-btn');
+  const leaveGuildBtn = document.getElementById('leave-guild-btn');
+  const disbandGuildBtn = document.getElementById('disband-guild-btn');
+  const guildActions = document.getElementById('guild-actions');
+  const statsBlock = document.getElementById('guild-stats');
+
+  const shopContainer = document.getElementById('shop');
+
+  // --- Функции сохранения ---
+  function saveProgress() {
+    localStorage.setItem('farm_coins', coins.toString());
+    localStorage.setItem('farm_plots', JSON.stringify(plots));
+  }
+  function saveGuild() {
+    localStorage.setItem('farm_guild_name', guildName);
+    localStorage.setItem('farm_guild_leader', guildLeader);
+    localStorage.setItem('farm_guild_members', JSON.stringify(guildMembers));
+    localStorage.setItem('farm_guild_level', guildLevel.toString());
+    localStorage.setItem('farm_guild_points', guildPoints.toString());
+  }
+  function saveCurrentNick() {
+    localStorage.setItem('farm_current_nick', currentNick);
+  }
+
+  // --- Навигация ---
+  function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    const screen = document.getElementById(screenId);
+    if (screen) screen.classList.add('active');
+  }
+
+  fieldBtn.onclick = () => showScreen('field-screen');
+  shopBtn.onclick = () => { renderShop(); showScreen('shop-screen'); };
+  guildBtn.onclick = () => { renderGuildInfo(); showScreen('guild-screen'); };
+
+  // --- Вспомогательные функции таймеров ---
+  function getTimeLeft(plantedAt, growTimeSeconds) {
+    const now = Date.now();
+    const elapsed = Math.floor((now - plantedAt) / 1000);
+    const left = Math.max(0, growTimeSeconds - elapsed);
+    return left;
+  }
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  // --- Отрисовка поля ---
+  function renderField() {
+    field.innerHTML = '';
+    plots.forEach((plotData, i) => {
+      const plot = document.createElement('div');
+      plot.className = 'plot';
+
+      if (plotData) {
+        const { cropKey, plantedAt } = plotData;
+        const crop = cropsConfig[cropKey];
+        plot.textContent = crop.emoji;
+
+        if (cropKey === 'carrot') plot.style.background = '#ffca28';
+        else if (cropKey === 'wheat') plot.style.background = '#c5e1a5';
+        else if (cropKey === 'strawberry') plot.style.background = '#ffcdd2';
+
+        const timeLeft = getTimeLeft(plantedAt, crop.growTime);
+        const isReady = timeLeft <= 0;
+
+        // Таймер
+        const timerEl = document.createElement('span');
+        timerEl.className = 'plot-timer';
+        timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
+        plot.appendChild(timerEl);
+
+        plot.onclick = () => {
+          if (!isReady) {
+            tg.showAlert('Ещё рано — растение не выросло!');
             return;
           }
-          selectedCropKey = key;
-          coins -= crop.price;
+          plots[i] = null;
+          coins += crop.reward;
           saveProgress();
-          showScreen('field-screen');
           renderField();
-          tg.showAlert(`Выбрано: ${crop.name}. Теперь сажай на поле!`);
+          tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
         };
-        shopContainer.appendChild(item);
-      }
-    }
 
-    // --- Квесты ---
-    function checkQuests() {
-      let newReward = false;
-      let secretText = '';
-
-      const q1 = questsConfig.find(q => q.id === 'q1');
-      if (!q1.done && questsProgress.harvested_total >= 1) {
-        q1.done = true;
-        coins += q1.reward;
-        secretText = q1.secret;
-        newReward = true;
-      }
-
-      const q2 = questsConfig.find(q => q.id === 'q2');
-      if (!q2.done) {
-        const plantedTotal = questsProgress.planted_total || 0;
-        if (plantedTotal >= q2.target) {
-          q2.done = true;
-          coins += q2.reward;
-          secretText = q2.secret;
-          newReward = true;
+        if (!isReady) {
+          plot.style.cursor = 'not-allowed';
+          plot.style.opacity = '0.8';
         }
+      } else {
+        plot.style.background = '#ecf0f1';
+        plot.textContent = '🌱';
+
+        plot.onclick = () => {
+          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
+          saveProgress();
+          renderField();
+          tg.showAlert(`Ты посадил ${cropsConfig[selectedCropKey].name}!`);
+        };
       }
 
-      const q3 = questsConfig.find(q => q.id === 'q3');
-      if (!q3.done) {
-        const harvestedTotal = questsProgress.harvested_total || 0;
-        if (harvestedTotal >= q3.target) {
-          q3.done = true;
-          coins += q3.reward;
-          secretText = q3.secret;
-          newReward = true;
+      field.appendChild(plot);
+    });
+    coinsEl.textContent = coins;
+  }
+
+  // --- Магазин ---
+  function renderShop() {
+    shopContainer.innerHTML = '';
+    for (const key in cropsConfig) {
+      const crop = cropsConfig[key];
+      const item = document.createElement('div');
+      item.className = 'shop-item';
+      item.innerHTML = `<span class="shop-name">${crop.name}</span><span class="shop-price">${crop.price} монет</span>`;
+      item.onclick = () => {
+        if (coins < crop.price) {
+          tg.showAlert('Не хватает монет!');
+          return;
         }
-      }
-
-      const q4 = questsConfig.find(q => q.id === 'q4');
-      if (!q4.done) {
-        const earnedTotal = questsProgress.earned_coins || 0;
-        if (earnedTotal >= q4.target) {
-          q4.done = true;
-          coins += q4.reward;
-          secretText = q4.secret;
-          newReward = true;
-        }
-      }
-
-      if (newReward) {
+        selectedCropKey = key;
+        coins -= crop.price;
         saveProgress();
-        saveQuests();
+        showScreen('field-screen');
         renderField();
-        renderQuests();
-        tg.showAlert(secretText);
-      }
+        tg.showAlert(`Выбрано: ${crop.name}. Теперь сажай на поле!`);
+      };
+      shopContainer.appendChild(item);
+    }
+  }
+
+  // --- Гильдия ---
+  function renderGuildInfo() {
+    if (!guildName) {
+      statsBlock.style.display = 'none';
+      createGuildBtn.style.display = 'inline-block';
+      joinGuildBtn.style.display = 'inline-block';
+      guildActions.style.display = 'none';
+      disbandGuildBtn.style.display = 'none';
+      return;
     }
 
-    function renderQuests() {
-      questsContainer.innerHTML = '';
-      questsConfig.forEach(q => {
-        const isDone = q.done;
-        const item = document.createElement('div');
-        item.className = `quest-item ${isDone ? 'quest-done' : ''}`;
+    statsBlock.style.display = 'block';
+    guildNameEl.textContent = guildName;
+    guildLeaderEl.textContent = guildLeader || 'Не назначен';
+    guildMembersCountEl.textContent = guildMembers.length;
+    guildLevelEl.textContent = guildLevel;
+    guildPointsEl.textContent = guildPoints;
 
-        let progressText = '';
-        if (!isDone) {
-          if (q.id === 'q2') {
-            const planted = questsProgress.planted_total || 0;
-            progressText = `${planted}/${q.target}`;
-          } else if (q.id === 'q3') {
-            const harvested = questsProgress.harvested_total || 0;
-            progressText = `${harvested}/${q.target}`;
-          } else if (q.id === 'q4') {
-            const earned = questsProgress.earned_coins || 0;
-            progressText = `${earned}/${q.target} монет`;
-          }
-        }
+    const isInGuild = guildMembers.includes(currentNick);
+    guildActions.style.display = isInGuild ? 'block' : 'none';
+    disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
 
-        item.innerHTML = `
-          <span class="quest-name">${q.title}</span>
-          ${progressText ? `<span class="quest-progress">${progressText}</span>` : ''}
-          <span class="quest-reward">${q.reward} монет</span>
-        `;
-        item.style.cursor = 'default';
-        questsContainer.appendChild(item);
-      });
+    createGuildBtn.style.display = guildName ? 'none' : 'inline-block';
+    joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
+  }
+
+  createGuildBtn.onclick = () => {
+    const name = prompt('Придумай название гильдии:');
+    if (!name || name.trim() === '') return;
+
+    const myNick = prompt('Твой никнейм в гильдии:', 'Игрок');
+    const finalNick = myNick && myNick.trim() ? myNick.trim() : 'Игрок';
+
+    currentNick = finalNick;
+    saveCurrentNick();
+
+    guildName = name.trim();
+    guildLeader = finalNick;
+    guildMembers = [finalNick];
+    guildLevel = 1;
+    guildPoints = 0;
+
+    saveGuild();
+    renderGuildInfo();
+    tg.showAlert(`Гильдия «${guildName}» создана! Ты — лидер. Участников: 1.`);
+  };
+
+  joinGuildBtn.onclick = () => {
+    if (!guildName) {
+      tg.showAlert('Сейчас нет активной гильдии, в которую можно вступить. Сначала кто‑то должен её создать.');
+      return;
     }
 
-    // --- Гильдия ---
-    function renderGuildInfo() {
-      if (!guildName) {
-        statsBlock.style.display = 'none';
-        createGuildBtn.style.display = 'inline-block';
-        joinGuildBtn.style.display = 'inline-block';
-        guildActions.style.display = 'none';
-        disbandGuildBtn.style.display = 'none';
-        return;
-      }
+    const name = prompt('Введи свой никнейм для вступления в гильдию:', 'Гость');
+    const nick = name && name.trim() ? name.trim() : 'Гость';
 
-      statsBlock.style.display = 'block';
-      guildNameEl.textContent = guildName;
-      guildLeaderEl.textContent = guildLeader || 'Не назначен';
-      guildMembersCountEl.textContent = guildMembers.length;
-      guildLevelEl.textContent = guildLevel;
-      guildPointsEl.textContent = guildPoints;
-
-      const isInGuild = guildMembers.includes(currentNick);
-      guildActions.style.display = isInGuild ? 'block' : 'none';
-      disbandGuildBtn.style.display = (isInGuild && guildLeader === currentNick) ? 'inline-block' : 'none';
-
-      createGuildBtn.style.display = guildName ? 'none' : 'inline-block';
-      joinGuildBtn.style.display = isInGuild ? 'none' : 'inline-block';
+    if (nick === '') {
+      tg.showAlert('Никнейм не может быть пустым.');
+      return;
+    }
+    if (guildMembers.includes(nick)) {
+      tg.showAlert('Такой ник уже есть в гильдии!');
+      return;
     }
 
-    createGuildBtn.onclick = () => {
-      const name = prompt('Придумай название гильдии:');
-      if (!name || name.trim() === '') return;
+    currentNick = nick;
+    saveCurrentNick();
+    guildMembers.push(nick);
+    saveGuild();
+    renderGuildInfo();
+    tg.showAlert(`Ты вступил в гильдию «${guildName}»! Теперь участников: ${guildMembers.length}.`);
+  };
 
-      const myNick = prompt('Твой никнейм в гильдии:', 'Игрок');
-      const finalNick = myNick && myNick.trim() ? myNick.trim() : 'Игрок';
+  leaveGuildBtn.onclick = () => {
+    if (!guildName || !guildMembers.includes(currentNick)) {
+      tg.showAlert('Ты не состоишь в гильдии.');
+      return;
+    }
 
-      currentNick = finalNick;
-      saveCurrentNick();
-
-      guildName = name.trim();
-      guildLeader = finalNick;
-      guildMembers = [finalNick];
-      guildLevel = 1;
-      guildPoints = 0;
-
-      saveGuild();
-      renderGuildInfo();
-      tg.showAlert(`Гильдия «${guildName}» создана! Ты — лидер. Участников: 1.`);
-    };
-
-    joinGuildBtn.onclick = () => {
-      if (!guildName) {
-        tg.showAlert('Сейчас нет активной гильдии, в которую можно вступить. Сначала кто‑то должен её создать.');
-        return;
-      }
-
-      const name = prompt('Введи свой никнейм для вступления в гильдию:', 'Гость');
-      const nick = name && name.trim() ? name.trim() : 'Гость';
-
-      if (nick === '') {
-        tg.showAlert('Никнейм не может быть пустым.');
-        return;
-      }
-      if (guildMembers.includes(nick)) {
-        tg.showAlert('Такой ник уже есть в гильдии!');
-        return;
-      }
-
-      currentNick = nick;
-      saveCurrentNick();
-      guildMembers.push(nick);
-      saveGuild();
-      renderGuildInfo();
-      tg.showAlert(`Ты вступил в гильдию «${guildName}»! Теперь участников: ${guildMembers.length}.`);
-    };
-
-    leaveGuildBtn.onclick = () => {
-      if (!guildName || !guildMembers.includes(currentNick)) {
-        tg.showAlert('Ты не состоишь в гильдии.');
-        return;
-      }
-
-      if (currentNick === guildLeader) {
-        guildName = null;
-        guildLeader = null;
-        guildMembers = [];
-        guildLevel = 0;
-        guildPoints = 0;
-
-        saveGuild();
-        renderGuildInfo();
-        tg.showAlert('Ты был лидером и распустил гильдию. Всё сброшено.');
-        return;
-      }
-
-      guildMembers = guildMembers.filter(nick => nick !== currentNick);
-      saveGuild();
-      renderGuildInfo();
-      tg.showAlert('Ты вышел из гильдии.');
-    };
-
-    disbandGuildBtn.onclick = () => {
-      if (currentNick !== guildLeader) {
-        tg.showAlert('Только лидер может распустить гильдию!');
-        return;
-      }
-      if (!confirm('Ты точно хочешь распустить гильдию? Все данные гильдии будут удалены.')) {
-        return;
-      }
-
+    if (currentNick === guildLeader) {
       guildName = null;
       guildLeader = null;
       guildMembers = [];
@@ -662,62 +517,79 @@ function formatTime(seconds) {
 
       saveGuild();
       renderGuildInfo();
-      tg.showAlert('Гильдия распущена. Теперь можно создать новую или вступить в другую.');
-    };
-
-    // --- Инициализация ---
-    if (plots.length !== 6) {
-      plots = Array(6).fill(null);
-      saveProgress();
+      tg.showAlert('Ты был лидером и распустил гильдию. Всё сброшено.');
+      return;
     }
-    renderShop();
-    renderField();
-    renderQuests();
+
+    guildMembers = guildMembers.filter(nick => nick !== currentNick);
+    saveGuild();
     renderGuildInfo();
+    tg.showAlert('Ты вышел из гильдии.');
+  };
 
-    
-harvestBtn.onclick = () => {
-  let harvestedCount = 0;
-  let earnedCoins = 0;
-
-  plots.forEach((plotData, i) => {
-    if (!plotData) return;
-
-    const { cropKey, plantedAt } = plotData;
-    const crop = cropsConfig[cropKey];
-
-    const timeLeft = getTimeLeft(plantedAt, crop.growTime);
-
-    if (timeLeft <= 0) {
-      earnedCoins += crop.reward;
-      harvestedCount++;
-      plots[i] = null;
+  disbandGuildBtn.onclick = () => {
+    if (currentNick !== guildLeader) {
+      tg.showAlert('Только лидер может распустить гильдию!');
+      return;
     }
-  });
+    if (!confirm('Ты точно хочешь распустить гильдию? Все данные гильдии будут удалены.')) {
+      return;
+    }
 
-  if (harvestedCount > 0) {
-    coins += earnedCoins;
+    guildName = null;
+    guildLeader = null;
+    guildMembers = [];
+    guildLevel = 0;
+    guildPoints = 0;
 
-    questsProgress.harvested_total = (questsProgress.harvested_total || 0) + harvestedCount;
-    questsProgress.earned_coins = (questsProgress.earned_coins || 0) + earnedCoins;
+    saveGuild();
+    renderGuildInfo();
+    tg.showAlert('Гильдия распущена.');
+  };
 
-    saveProgress();
-    saveQuests();
-    checkQuests();
-    renderField();
+  // --- Кнопка «Собрать урожай» (собирает только готовое) ---
+  const harvestBtn = document.getElementById('harvestBtn');
+  if (harvestBtn) {
+    harvestBtn.onclick = () => {
+      let harvestedCount = 0;
+      let earnedCoins = 0;
 
-    tg.showAlert(`Собран урожай: ${harvestedCount}. Получено монет: ${earnedCoins}.`);
-  } else {
-    tg.showAlert('Нет готового к сбору урожая — подожди, пока вырастет или посади новый!');
+      plots.forEach((plotData, i) => {
+        if (!plotData) return;
+
+        const { cropKey, plantedAt } = plotData;
+        const crop = cropsConfig[cropKey];
+
+        const timeLeft = getTimeLeft(plantedAt, crop.growTime);
+
+        if (timeLeft <= 0) {
+          earnedCoins += crop.reward;
+          harvestedCount++;
+          plots[i] = null;
+        }
+      });
+
+      if (harvestedCount > 0) {
+        coins += earnedCoins;
+        saveProgress();
+        renderField();
+        tg.showAlert(`Собрано ${harvestedCount} урожая(-ов)! Получено монет: ${earnedCoins}.`);
+      } else {
+        tg.showAlert('Нет готового к сбору урожая — подожди, пока вырастет!');
+      }
+    };
   }
-};
-    setInterval(() => {
-  // Перерисовываем поле, чтобы обновить таймеры
-  const currentScreen = document.querySelector('.screen.active');
-  if (currentScreen && currentScreen.id === 'field-screen') {
-    renderField();
-  }
-}, 1000);
-  </script>
+
+  // --- Таймер обновления таймеров на поле ---
+  setInterval(() => {
+    const currentScreen = document.querySelector('.screen.active');
+    if (currentScreen && currentScreen.id === 'field-screen') {
+      renderField();
+    }
+  }, 1000);
+
+  // --- Первая отрисовка ---
+  renderField();
+</script>
 </body>
 </html>
