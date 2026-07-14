@@ -675,33 +675,42 @@ function formatTime(seconds) {
     renderQuests();
     renderGuildInfo();
 
-    harvestBtn.onclick = () => {
-      let harvested = 0;
-      let earnedThisHarvest = 0;
+    
+harvestBtn.onclick = () => {
+  let harvestedCount = 0;
+  let earnedCoins = 0;
 
-      plots.forEach((cropKey, i) => {
-        if (cropKey) {
-          const crop = cropsConfig[cropKey];
-          earnedThisHarvest += crop.reward;
-          harvested++;
-          plots[i] = null;
-        }
-      });
+  plots.forEach((plotData, i) => {
+    if (!plotData) return;
 
-      if (harvested > 0) {
-        coins += earnedThisHarvest;
-        questsProgress.harvested_total = (questsProgress.harvested_total || 0) + harvested;
-        questsProgress.earned_coins = (questsProgress.earned_coins || 0) + earnedThisHarvest;
+    const { cropKey, plantedAt } = plotData;
+    const crop = cropsConfig[cropKey];
 
-        saveProgress();
-        saveQuests();
-        checkQuests();
-        renderField();
-        tg.showAlert(`Собран урожай! Получено монет: ${earnedThisHarvest}.`);
-      } else {
-        tg.showAlert('На поле ничего не растёт — сначала посади что-нибудь!');
-      }
-    };
+    const timeLeft = getTimeLeft(plantedAt, crop.growTime);
+
+    if (timeLeft <= 0) {
+      earnedCoins += crop.reward;
+      harvestedCount++;
+      plots[i] = null;
+    }
+  });
+
+  if (harvestedCount > 0) {
+    coins += earnedCoins;
+
+    questsProgress.harvested_total = (questsProgress.harvested_total || 0) + harvestedCount;
+    questsProgress.earned_coins = (questsProgress.earned_coins || 0) + earnedCoins;
+
+    saveProgress();
+    saveQuests();
+    checkQuests();
+    renderField();
+
+    tg.showAlert(`Собран урожай: ${harvestedCount}. Получено монет: ${earnedCoins}.`);
+  } else {
+    tg.showAlert('Нет готового к сбору урожая — подожди, пока вырастет или посади новый!');
+  }
+};
     setInterval(() => {
   // Перерисовываем поле, чтобы обновить таймеры
   const currentScreen = document.querySelector('.screen.active');
