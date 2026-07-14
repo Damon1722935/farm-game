@@ -37,7 +37,7 @@
         cursor: pointer;
         border-radius: 6px;
       }
-      select, button {
+      button {
         display: block;
         width: 100%;
         padding: 12px;
@@ -50,7 +50,8 @@
       .btn-plant { background: #4caf50; color: white; }
       .btn-harvest { background: #f57c00; color: white; }
       .btn-close { background: #607d8b; color: white; margin-top: 10px; }
-      .shop-item {
+
+      .shop-item, .quest-item {
         background: rgba(255,255,255,0.9);
         border: 1px solid #ddd;
         padding: 12px;
@@ -61,14 +62,15 @@
         justify-content: space-between;
         align-items: center;
       }
-      .shop-name { font-weight: 500; }
-      .shop-price { color: #d32f2f; }
+      .shop-name, .quest-name { font-weight: 500; }
+      .shop-price, .quest-reward { color: #d32f2f; }
+      .quest-done { opacity: 0.6; text-decoration: line-through; }
 
       /* экраны */
       .screen { display: none; }
       .screen.active { display: block; }
 
-      #guild-screen, #shop-screen {
+      #guild-screen, #shop-screen, #quests-screen {
         margin-top: 20px;
         padding: 10px;
         background: rgba(255,255,255,0.85);
@@ -76,42 +78,3 @@
       }
     </style>
   </head>
-  <body>
-    <h2>Моя ферма 🌱</h2>
-    <div class="balance">Монет: <span id="coins">0</span></div>
-
-    <!-- Кнопки навигации -->
-    <button id="fieldBtn" class="btn-plant">Поле</button>
-    <button id="shopBtn" class="btn-plant">Магазин</button>
-    <button id="guildBtn" class="btn-plant">Гильдия</button>
-
-    <!-- Экран: Поле -->
-    <div id="field-screen" class="screen active">
-      <h3>Поле</h3>
-      <div class="field" id="field"></div>
-      <button id="harvestBtn" class="btn-harvest">Собрать урожай</button>
-    </div>
-
-    <!-- Экран: Магазин -->
-    <div id="shop-screen" class="screen">
-      <h3>Магазин семян</h3>
-      <div id="shop"></div>
-    </div>
-
-    <!-- Экран: Гильдия -->
-    <div id="guild-screen" class="screen">
-      <h3>Гильдия 🏰</h3>
-      <div style="background:rgba(255,255,255,0.9); padding:12px; border-radius:8px;">
-        <p><b>Название гильдии:</b> <span id="guild-name">Не выбрана</span></p>
-        <p><b>Уровень гильдии:</b> <span id="guild-level">0</span></p>
-        <p><b>Очки гильдии:</b> <span id="guild-points">0</span></p>
-      </div>
-      <button id="create-guild-btn" class="btn-plant" style="margin-top:10px;">Создать гильдию</button>
-      <button id="join-guild-btn" class="btn-harvest" style="margin-top:5px;">Вступить в гильдию</button>
-    </div>
-
-    <button id="closeBtn" class="btn-close">Закрыть игру</button>
-
-    <script src="./script.js"></script>
-  </body>
-</html>
