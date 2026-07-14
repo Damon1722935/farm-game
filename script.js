@@ -164,11 +164,14 @@ function renderField() {
   field.innerHTML = '';
   plots.forEach((cropKey, i) => {
     const plot = document.createElement('div');
-    plot.className = 'plot';
+    plot.className = 'plot'; // класс остаётся, фон теперь берётся из CSS
+
     if (cropKey) {
       const crop = cropsConfig[cropKey];
       plot.textContent = crop.emoji;
+      // ❌ Строки с plot.style.background удалены — теперь работает CSS
     }
+
     field.appendChild(plot);
   });
   coinsEl.textContent = coins;
