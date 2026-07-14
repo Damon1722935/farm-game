@@ -78,3 +78,49 @@
       }
     </style>
   </head>
+  <body>
+    <h2>Моя ферма 🌱</h2>
+    <div class="balance">Монет: <span id="coins">0</span></div>
+
+    <!-- Навигация -->
+    <button id="fieldBtn" class="btn-plant">Поле</button>
+    <button id="shopBtn" class="btn-plant">Магазин</button>
+    <button id="questsBtn" class="btn-plant">Задания</button>
+    <button id="guildBtn" class="btn-plant">Гильдия</button>
+
+    <!-- Экран: Поле -->
+    <div id="field-screen" class="screen active">
+      <h3>Поле</h3>
+      <div class="field" id="field"></div>
+      <button id="harvestBtn" class="btn-harvest">Собрать урожай</button>
+    </div>
+
+    <!-- Экран: Магазин -->
+    <div id="shop-screen" class="screen">
+      <h3>Магазин семян</h3>
+      <div id="shop"></div>
+    </div>
+
+    <!-- Экран: Задания -->
+    <div id="quests-screen" class="screen">
+      <h3>Задания 📜</h3>
+      <div id="quests"></div>
+    </div>
+
+    <!-- Экран: Гильдия -->
+    <div id="guild-screen" class="screen">
+      <h3>Гильдия 🏰</h3>
+      <div style="background:rgba(255,255,255,0.9); padding:12px; border-radius:8px;">
+        <p><b>Название гильдии:</b> <span id="guild-name">Не выбрана</span></p>
+        <p><b>Уровень гильдии:</b> <span id="guild-level">0</span></p>
+        <p><b>Очки гильдии:</b> <span id="guild-points">0</span></p>
+      </div>
+      <button id="create-guild-btn" class="btn-plant" style="margin-top:10px;">Создать гильдию</button>
+      <button id="join-guild-btn" class="btn-harvest" style="margin-top:5px;">Вступить в гильдию</button>
+    </div>
+
+    <button id="closeBtn" class="btn-close">Закрыть игру</button>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
