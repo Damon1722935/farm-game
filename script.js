@@ -13,40 +13,33 @@ if (window.Telegram && window.Telegram.WebApp) {
 }
 // --------------------------------------
 
+// Конфигурация культур
 const cropsConfig = {
   carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕' },
   wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾' },
   strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓' }
 };
 
-// Задания: ключ — ID задания, внутри: текст, награда, секретный текст (для квеста)
+// Конфигурация заданий
 const questsConfig = [
-  {
-    id: 'q1',
-    title: 'Прополоть первую грядку',
-    reward: 50,
-    secret: 'Ты делаешь всё правильно. Она точно это заметит.'
-  },
-  {
-    id: 'q2',
-    title: 'Посадить 3 культуры',
-    reward: 70,
-    secret: 'Это как первые слова: неловко, но важно сказать.'
-  },
-  {
-    id: 'q3',
-    title: 'Собрать первый урожай',
-    reward: 100,
-    secret: 'Иногда самое красивое признание — в простых делах.'
-  },
-  {
-    id: 'q4',
-    title: 'Заработать 200 монет',
-    reward: 150,
-    secret: 'Скоро ты сможешь сказать всё, что копил в сердце.'
-  }
+  { id: 'q1', title: 'Прополоть первую грядку', reward: 50, secret: 'Ты делаешь всё правильно. Она точно это заметит.' },
+  { id: 'q2', title: 'Посадить 3 культуры', reward: 70, secret: 'Это как первые слова: неловко, но важно сказать.' },
+  { id: 'q3', title: 'Собрать первый урожай', reward: 100, secret: 'Иногда самое красивое признание — в простых делах.' },
+  { id: 'q4', title: 'Заработать 200 монет', reward: 150, secret: 'Скоро ты сможешь сказать всё, что копил в сердце.' }
 ];
 
+// --- ВАЖНО: сброс старых данных, если версия игры обновилась ---
+const currentVersion = 'v1.1';
+const storedVersion = localStorage.getItem('farm_version');
+if (storedVersion !== currentVersion) {
+  localStorage.removeItem('farm_coins');
+  localStorage.removeItem('farm_plots');
+  localStorage.removeItem('farm_completed_quests');
+  localStorage.setItem('farm_version', currentVersion);
+  console.log('🧹 Данные сброшены под новую версию игры.');
+}
+
+// Загрузка данных
 let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
 let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
 let selectedCropKey = 'carrot';
@@ -55,9 +48,9 @@ let guildName = localStorage.getItem('farm_guild_name') || null;
 let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
 let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
 
-// Прогресс по заданиям
 let completedQuests = JSON.parse(localStorage.getItem('farm_completed_quests')) || [];
 
+// Элементы DOM
 const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
 const harvestBtn = document.getElementById('harvestBtn');
@@ -80,17 +73,16 @@ const fieldScreen = document.getElementById('field-screen');
 const shopScreen = document.getElementById('shop-screen');
 const questsScreen = document.getElementById('quests-screen');
 
+// Сохранение данных
 function saveProgress() {
   localStorage.setItem('farm_coins', coins.toString());
   localStorage.setItem('farm_plots', JSON.stringify(plots));
 }
-
 function saveGuild() {
   localStorage.setItem('farm_guild_name', guildName);
   localStorage.setItem('farm_guild_level', guildLevel.toString());
   localStorage.setItem('farm_guild_points', guildPoints.toString());
 }
-
 function saveQuests() {
   localStorage.setItem('farm_completed_quests', JSON.stringify(completedQuests));
 }
@@ -103,18 +95,9 @@ function showScreen(screenId) {
 }
 
 fieldBtn.onclick = () => showScreen('field-screen');
-shopBtn.onclick = () => {
-  renderShop();
-  showScreen('shop-screen');
-};
-questsBtn.onclick = () => {
-  renderQuests();
-  showScreen('quests-screen');
-};
-guildBtn.onclick = () => {
-  renderGuildInfo();
-  showScreen('guild-screen');
-};
+shopBtn.onclick = () => { renderShop(); showScreen('shop-screen'); };
+questsBtn.onclick = () => { renderQuests(); showScreen('quests-screen'); };
+guildBtn.onclick = () => { renderGuildInfo(); showScreen('guild-screen'); };
 
 // Магазин
 function renderShop() {
@@ -123,10 +106,7 @@ function renderShop() {
     const crop = cropsConfig[key];
     const item = document.createElement('div');
     item.className = 'shop-item';
-    item.innerHTML = `
-      <span class="shop-name">${crop.name}</span>
-      <span class="shop-price">${crop.price} монет</span>
-    `;
+    item.innerHTML = `<span class="shop-name">${crop.name}</span><span class="shop-price">${crop.price} монет</span>`;
     item.onclick = () => {
       selectedCropKey = key;
       showScreen('field-screen');
@@ -154,17 +134,14 @@ function renderField() {
   coinsEl.textContent = coins;
 }
 
-// Задания
+// Задания (теперь точно отрендерятся)
 function renderQuests() {
-  questsContainer.innerHTML = '';
+  questsContainer.innerHTML = ''; // очистка перед перерисовкой
   questsConfig.forEach(q => {
     const isDone = completedQuests.includes(q.id);
     const item = document.createElement('div');
     item.className = `quest-item ${isDone ? 'quest-done' : ''}`;
-    item.innerHTML = `
-      <span class="quest-name">${q.title}</span>
-      <span class="quest-reward">${q.reward} монет</span>
-    `;
+    item.innerHTML = `<span class="quest-name">${q.title}</span><span class="quest-reward">${q.reward} монет</span>`;
     if (!isDone) {
       item.onclick = () => completeQuest(q);
     } else {
@@ -180,9 +157,7 @@ function completeQuest(quest) {
   saveProgress();
   saveQuests();
   renderField();
-  renderQuests();
-
-  // Показываем секретный текст из квеста
+  renderQuests(); // перерисовываем, чтобы задание стало зачёркнутым
   tg.showAlert(quest.secret);
 }
 
@@ -193,11 +168,11 @@ function renderGuildInfo() {
   guildPointsEl.textContent = guildPoints;
 }
 
+// Инициализация
 if (plots.length !== 6) {
   plots = Array(6).fill(null);
   saveProgress();
 }
-
 renderShop();
 renderField();
 renderQuests();
@@ -207,10 +182,8 @@ renderGuildInfo();
 field.addEventListener('click', (e) => {
   const plot = e.target.closest('.plot');
   if (!plot) return;
-
   const index = Array.from(field.children).indexOf(plot);
   if (plots[index]) return; // уже растёт
-
   const crop = cropsConfig[selectedCropKey];
   if (coins >= crop.price) {
     coins -= crop.price;
@@ -243,7 +216,6 @@ harvestBtn.onclick = () => {
 
 closeBtn.onclick = () => tg.close();
 
-// Гильдия: создать/вступить
 createGuildBtn.onclick = () => {
   const name = prompt('Придумай название гильдии:');
   if (!name || name.trim() === '') return;
@@ -263,3 +235,4 @@ joinGuildBtn.onclick = () => {
   renderGuildInfo();
   tg.showAlert('Ты вступил в гильдию: ' + guildName);
 };
+
