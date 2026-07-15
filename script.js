@@ -240,7 +240,7 @@ function renderField() {
       // Клик по готовой грядке — поштучный сбор
       plot.onclick = () => {
         if (!isReady) {
-          tg.showAlert('Ещё рано — растение не выросло!');
+          tg.showAlert('Ещё рано — растение не выросло!');
           return;
         }
         plots[i] = null;
@@ -262,23 +262,31 @@ function renderField() {
       }
 
     } else {
-// Пустая грядка — посадка
+      // --- ПУСТАЯ ГРЯДКА — ПОСАДКА С АНИМАЦИЕЙ ---
       plot.textContent = '🌱';
       plot.classList.remove('ready');
       plot.style.cursor = 'pointer';
       plot.style.opacity = '1';
 
-      plot.onclick = () => {
+      // Делаем обработчик клика асинхронным (async)
+      plot.onclick = async () => {
         const crop = cropsConfig[selectedCropKey];
         
         // Проверяем: есть ли выбранные семена в инвентаре?
         if (inventory[selectedCropKey] > 0) {
+          
+          // 1. Запускаем нашу красивую анимацию лопаты и полива!
+          // Передаем сам DOM-элемент грядки (plot) прямо в функцию анимации.
+          await runPlantingAnimation(plot);
+
+          // 2. После того, как анимация полностью закончилась, списываем семечко и сажаем
           inventory[selectedCropKey]--; // Тратим 1 семечко из рюкзака
           plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() }; // Сажаем
           
           saveProgress();
           saveInventory(); // Сохраняем рюкзак
-          renderField(); // Обновляем поле
+          renderField(); // Перерисовываем поле, чтобы запустить таймер роста
+          
           tg.showAlert(`Ты посадил ${crop.name}! Осталось семян: ${inventory[selectedCropKey]} шт.`);
         } else {
           // Если семян нет — отправляем в магазин
