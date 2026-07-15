@@ -187,6 +187,31 @@
       font-weight: bold;
       color: #f1c40f;
     }
+    /* --- СТИЛИ ДЛЯ ИНВЕНТАРЯ --- */
+    .inventory-item {
+      background: rgba(255,255,255,0.1);
+      padding: 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent; /* Заготовка под рамку выбора */
+    }
+    .inventory-item:hover {
+      background: rgba(255,255,255,0.15);
+      transform: scale(1.02);
+    }
+    .inventory-name { 
+      font-weight: bold; 
+      color: #ffffff; 
+    }
+    .inventory-count { 
+      color: #f1c40f; 
+      font-weight: bold; 
+    }
   </style>
 </head>
 <body>
@@ -200,6 +225,7 @@
     <div class="btn-group">
       <button id="fieldBtn">🌾 Поле</button>
       <button id="shopBtn">🛍 Магазин</button>
+      <button id="inventoryBtn">🎒 Инвентарь</button>
       <button id="guildBtn">🏰 Гильдия</button>
     </div>
 
@@ -214,6 +240,11 @@
     <div id="shop-screen" class="screen">
       <h3>Магазин семян</h3>
       <div id="shop"></div>
+    </div>
+!-- ЭКРАН: Инвентарь -->
+    <div id="inventory-screen" class="screen">
+      <h3>Рюкзак с семенами</h3>
+      <div id="inventory"></div>
     </div>
 
     <!-- ЭКРАН: Гильдия -->
