@@ -100,23 +100,21 @@ body {
     }
 
 .plot {
-      height: 80px;
-      /* Стильная белая рамка */
+      height: 65px; /* Уменьшили высоту с 80px до 65px для компактности */
       border: 1.5px solid rgba(255, 255, 255, 0.4) !important; 
-      border-radius: 12px;
+      border-radius: 10px; /* Чуть уменьшили скругление углов под новый размер */
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding-top: 10px;
+      padding-top: 6px; /* Аккуратный отступ сверху */
       box-sizing: border-box;
-      font-size: 36px;
+      font-size: 28px; /* Уменьшили размер эмодзи с 36px до 28px, чтобы всё смотрелось гармонично */
       cursor: pointer;
       transition: transform 0.1s, filter 0.2s, background-color 0.2s;
 
-      /* Белый полупрозрачный фон с эффектом размытия за ним */
       background-color: rgba(255, 255, 255, 0.15) !important;
-      background-image: none !important; /* Полностью убираем старого человечка/землю */
-      backdrop-filter: blur(5px); /* Эффект матового стекла */
+      background-image: none !important;
+      backdrop-filter: blur(5px);
 
       position: relative;
       overflow: hidden;
@@ -234,6 +232,18 @@ body {
       background: rgba(0, 0, 0, 0.6) !important; /* Темная подложка для времени */
       color: #fff !important;
       font-weight: bold;
+    }
+
+    /* Сдвигаем сетку грядок вниз, ровно на коричневую текстуру почвы */
+    #plots {
+      margin-top: 55px; /* Этот отступ идеально сажает грядки на почву и толкает кнопку сбора еще ниже */
+    }
+
+    /* Подправим таймер, чтобы он не перекрывал наши новые компактные растения */
+    .plot-timer {
+      font-size: 10px !important; /* Сделали шрифт таймера чуть меньше */
+      padding: 1px 4px !important;
+      bottom: 2px !important; /* Чуть-чуть прижали к самому низу грядки */
     }
   </style>
 </head>
