@@ -61,14 +61,13 @@ function saveAllGuilds() {
 
 // Никнейм игрока (автоматически берем из Telegram, если он доступен)
 let currentNick = localStorage.getItem('farm_current_nick');
-if (!currentNick) {
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
-    const user = window.Telegram.WebApp.initDataUnsafe.user;
-    // Если у человека есть юзернейм (например, @alex), берем его. Если нет — берем Имя.
-    currentNick = user.username ? `@${user.username}` : user.first_name;
-  } else {
-    currentNick = 'Игрок'; // Оставляем для тестов в обычном браузере
-  }
+if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+  const user = window.Telegram.WebApp.initDataUnsafe.user;
+  // Если у человека есть юзернейм (например, @alex), берем его. Если нет — берем Имя.
+  currentNick = user.username ? `@${user.username}` : user.first_name;
+  localStorage.setItem('farm_current_nick', currentNick);
+} else if (!currentNick) {
+  currentNick = 'Игрок'; // Оставляем для тестов в обычном браузере
   localStorage.setItem('farm_current_nick', currentNick);
 }
 
@@ -186,8 +185,9 @@ function changeQty(cropKey, delta) {
 function validateQty(input) {
   let val = parseInt(input.value);
   if (isNaN(val) || val < 1) {
-    input.value = 1;
+    val = 1;
   }
+  input.value = val;
 }
 
 // Функция пакетной покупки семян
@@ -215,9 +215,6 @@ function buySeeds(cropKey) {
   } else {
     tg.showAlert(`Не хватает монет! Нужно ${totalCost} 🪙 на покупку ${quantity} шт., у вас всего ${coins} 🪙.`);
   }
-}
-    shopContainer.appendChild(item);
-  
 }
 
 function renderInventory() {
@@ -483,6 +480,10 @@ leaveGuildBtn.onclick = () => {
   const guildIndex = allGuilds.findIndex(g => g.name === guildName);
   if (guildIndex !== -1) {
     allGuilds[guildIndex].members = allGuilds[guildIndex].members.filter(m => m !== currentNick);
+    // Если в гильдии больше не осталось участников, удаляем саму гильдию из общего списка
+    if (allGuilds[guildIndex].members.length === 0) {
+      allGuilds.splice(guildIndex, 1);
+    }
     saveAllGuilds();
   }
 
