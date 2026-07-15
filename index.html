@@ -5,14 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Ферма</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-image: url('img/gross.jpg');
+body {
+      margin: 0;
+      padding: 10px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      user-select: none;
+
+      /* НАШ НОВЫЙ КРАСИВЫЙ ФОН */
+      background-image: 
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 35%), /* Затемнение верха под меню */
+        url('img/background.jpg'); /* Твой новый файл фона */
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
-      position: relative;
-      margin: 0;
+      background-repeat: no-repeat;
+      
       min-height: 100vh;
     }
 
@@ -92,31 +100,32 @@
     }
 
 .plot {
-      height: 80px; /* Увеличили высоту грядки с 60px до 80px, чтобы было больше места */
-      border: 2px solid rgba(255,255,255,0.2);
-      border-radius: 8px;
+      height: 80px;
+      /* Стильная белая рамка */
+      border: 1.5px solid rgba(255, 255, 255, 0.4) !important; 
+      border-radius: 12px;
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* Сдвинули эмодзи чуть-чуть вверх, чтобы таймер снизу его не перекрывал */
-      padding-top: 10px; /* Добавили аккуратный отступ сверху */
-      box-sizing: border-box; /* Чтобы отступы не ломали размеры грядки */
-      font-size: 36px; /* Увеличили размер значка урожая с 24px до 36px! */
+      align-items: flex-start;
+      padding-top: 10px;
+      box-sizing: border-box;
+      font-size: 36px;
       cursor: pointer;
-      transition: transform 0.1s, filter 0.2s;
+      transition: transform 0.1s, filter 0.2s, background-color 0.2s;
 
-      background-color: transparent !important;
-      background-image: url('img/man.png') !important;
-      background-size: cover !important;
-      background-position: center !important;
-      background-repeat: no-repeat !important;
+      /* Белый полупрозрачный фон с эффектом размытия за ним */
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      background-image: none !important; /* Полностью убираем старого человечка/землю */
+      backdrop-filter: blur(5px); /* Эффект матового стекла */
 
       position: relative;
       overflow: hidden;
     }
 
+    /* Эффект при наведении или нажатии на грядку */
     .plot:hover {
-      transform: scale(1.05);
-      filter: brightness(1.1);
+      background-color: rgba(255, 255, 255, 0.28) !important;
+      transform: scale(1.02);
     }
 
     .plot.ready {
@@ -211,6 +220,20 @@
     .inventory-count { 
       color: #f1c40f; 
       font-weight: bold; 
+    }
+    /* Улучшение читаемости заголовков на новом фоне */
+    h3, .screen h3, #field-screen h3 {
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      font-size: 22px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+    }
+
+    /* Делаем текст таймеров внутри грядок более контрастным */
+    .plot-timer {
+      background: rgba(0, 0, 0, 0.6) !important; /* Темная подложка для времени */
+      color: #fff !important;
+      font-weight: bold;
     }
   </style>
 </head>
