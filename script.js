@@ -51,6 +51,7 @@ const field = document.getElementById('field');
 const fieldBtn = document.getElementById('fieldBtn');
 const shopBtn = document.getElementById('shopBtn');
 const guildBtn = document.getElementById('guildBtn');
+const harvestBtn = document.getElementById('harvestBtn');
 
 const shopContainer = document.getElementById('shop');
 
@@ -163,12 +164,60 @@ function renderField() {
         tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
       };
 
-      if (!isReady) {
+      function renderField() {
+  field.innerHTML = '';
+
+  plots.forEach((plotData, i) => {
+    const plot = document.createElement('div');
+    plot.className = 'plot';
+
+    if (plotData) {
+      // Тут уже что-то растёт
+      const { cropKey, plantedAt } = plotData;
+      const crop = cropsConfig[cropKey];
+
+      plot.textContent = crop.emoji;
+
+      const timeLeft = getTimeLeft(plantedAt, crop.growTime);
+      const isReady = timeLeft <= 0;
+
+      // Таймер
+      const timerEl = document.createElement('span');
+      timerEl.className = 'plot-timer';
+      timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
+      plot.appendChild(timerEl);
+
+      // Логика клика по готовой грядке (поштучный сбор)
+      plot.onclick = () => {
+        if (!isReady) {
+          tg.showAlert('Ещё рано — растение не выросло!');
+          return;
+        }
+        plots[i] = null;
+        coins += crop.reward;
+        saveProgress();
+        renderField();
+        tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
+      };
+
+      // Подсветка и курсор для готовой грядки
+      if (isReady) {
+        plot.classList.add('ready');
+        plot.style.cursor = 'pointer';
+        plot.style.opacity = '1';
+      } else {
+        plot.classList.remove('ready');
         plot.style.cursor = 'not-allowed';
         plot.style.opacity = '0.85';
       }
+
     } else {
+      // Пустая грядка — можно сажать
       plot.textContent = '🌱';
+      plot.classList.remove('ready'); // на пустой не должно быть свечения
+      plot.style.cursor = 'pointer';
+      plot.style.opacity = '1';
+
       plot.onclick = () => {
         const crop = cropsConfig[selectedCropKey];
         if (coins >= crop.price) {
@@ -180,6 +229,14 @@ function renderField() {
         } else {
           tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у тебя ${coins}.`);
         }
+      };
+    }
+
+    field.appendChild(plot);
+  });
+
+  coinsEl.textContent = coins;
+}
       };
     }
 
@@ -301,6 +358,35 @@ disbandGuildBtn.onclick = () => {
   renderGuildInfo();
   tg.showAlert('Гильдия распущена.');
 };
+if (harvestBtn) {
+  harvestBtn.onclick = () => {
+    let harvestedCount = 0;
+    let totalReward = 0;
+
+    plots.forEach((plotData, i) => {
+      if (plotData) {
+        const { cropKey, plantedAt } = plotData;
+        const crop = cropsConfig[cropKey];
+        const timeLeft = getTimeLeft(plantedAt, crop.growTime);
+
+        if (timeLeft <= 0) {
+          plots[i] = null;
+          coins += crop.reward;
+          totalReward += crop.reward;
+          harvestedCount++;
+        }
+      }
+    });
+
+    if (harvestedCount > 0) {
+      saveProgress();
+      renderField();
+      tg.showAlert(`Собрано ${harvestedCount} урожая. Получено монет: ${totalReward}.`);
+    } else {
+      tg.showAlert('Нет готового урожая для сбора.');
+    }
+  };
+}
 
 // Таймер обновления времени на грядках (каждую секунду)
 setInterval(() => {
