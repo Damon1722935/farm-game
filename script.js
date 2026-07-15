@@ -45,8 +45,18 @@ let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || [];
 let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
 let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
 
-// Никнейм игрока
-let currentNick = localStorage.getItem('farm_current_nick') || 'Игрок';
+// Никнейм игрока (автоматически берем из Telegram, если он доступен)
+let currentNick = localStorage.getItem('farm_current_nick');
+if (!currentNick) {
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+    const user = window.Telegram.WebApp.initDataUnsafe.user;
+    // Если у человека есть юзернейм (например, @alex), берем его. Если нет — берем Имя.
+    currentNick = user.username ? `@${user.username}` : user.first_name;
+  } else {
+    currentNick = 'Игрок'; // Оставляем для тестов в обычном браузере
+  }
+  localStorage.setItem('farm_current_nick', currentNick);
+}
 
 function saveCurrentNick() {
   localStorage.setItem('farm_current_nick', currentNick);
@@ -76,6 +86,7 @@ const harvestBtn = document.getElementById('harvestBtn'); // кнопка сбо
 const shopContainer = document.getElementById('shop');
 
 // Элементы гильдии
+const guildStatsContainer = document.getElementById('guild-stats'); // Находим сам блок статистики
 const guildNameEl = document.getElementById('guild-name');
 const guildLeaderEl = document.getElementById('guild-leader');
 const guildMembersCountEl = document.getElementById('guild-members-count');
@@ -209,19 +220,48 @@ function renderField() {
 // --- Гильдия ---
 function renderGuildInfo() {
   if (guildName) {
+    // === СЦЕНАРИЙ 1: ИГРОК В ГИЛЬДИИ ===
+    
+    // 1. Показываем блок со статистикой
+    guildStatsContainer.style.display = 'block';
+    
+    // Заполняем статистику данными
     guildNameEl.textContent = guildName;
     guildLeaderEl.textContent = guildLeader;
     guildMembersCountEl.textContent = guildMembers.length;
     guildLevelEl.textContent = guildLevel;
     guildPointsEl.textContent = guildPoints;
+
+    // 2. Управляем кнопками действий
     guildActions.style.display = 'block';
+    createGuildBtn.style.display = 'none'; // Скрываем "Создать"
+    joinGuildBtn.style.display = 'none';   // Скрываем "Вступить"
+
+    // Проверяем: лидер игрок или нет
+    if (guildLeader === currentNick) {
+      // Если ЛИДЕР: показываем "Распустить", скрываем "Покинуть"
+      disbandGuildBtn.style.display = 'inline-block';
+      leaveGuildBtn.style.display = 'none';
+    } else {
+      // Если УЧАСТНИК: скрываем "Распустить", показываем "Покинуть"
+      disbandGuildBtn.style.display = 'none';
+      leaveGuildBtn.style.display = 'inline-block';
+    }
+
   } else {
-    guildNameEl.textContent = '—';
-    guildLeaderEl.textContent = '—';
-    guildMembersCountEl.textContent = '0';
-    guildLevelEl.textContent = '0';
-    guildPointsEl.textContent = '0';
-    guildActions.style.display = 'none';
+    // === СЦЕНАРИЙ 2: У ИГРОКА НЕТ ГИЛЬДИИ ===
+    
+    // 1. Полностью скрываем блок статистики
+    guildStatsContainer.style.display = 'none';
+    
+    // 2. Показываем только кнопки "Создать" и "Вступить"
+    guildActions.style.display = 'block';
+    createGuildBtn.style.display = 'inline-block';
+    joinGuildBtn.style.display = 'inline-block';
+    
+    // Скрываем кнопки выхода и роспуска
+    leaveGuildBtn.style.display = 'none';
+    disbandGuildBtn.style.display = 'none';
   }
 }
 
