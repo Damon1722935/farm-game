@@ -834,3 +834,26 @@ renderShop();
 renderGuildInfo();
 renderInventory();
 renderFarmerStats();
+(function initLoadingScreen() {
+  const loadingEl = document.getElementById('loadingScreen');
+  if (!loadingEl) return;
+  const appStartTs = Date.now();
+  const minDurationMs = 2200;
+  let hidden = false;
+  const hideLoader = () => {
+    if (hidden) return;
+    hidden = true;
+    loadingEl.classList.add('is-hidden');
+    setTimeout(() => {
+      if (loadingEl && loadingEl.parentNode) {
+        loadingEl.parentNode.removeChild(loadingEl);
+      }
+    }, 450);
+  };
+  window.addEventListener('load', () => {
+    const elapsed = Date.now() - appStartTs;
+    const waitMore = Math.max(0, minDurationMs - elapsed);
+    setTimeout(hideLoader, waitMore);
+  });
+  setTimeout(hideLoader, 7000);
+})();
