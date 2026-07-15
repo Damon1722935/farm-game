@@ -205,37 +205,85 @@ function renderShop() {
   shopContainer.innerHTML = '';
   for (const key in cropsConfig) {
     const crop = cropsConfig[key];
+    let qty = 1; // стартовое количество для покупки
     const item = document.createElement('div');
     item.className = 'shop-item';
-    
-    // Получаем текущее количество семян в рюкзаке
-    const seedCount = inventory[key] || 0;
-    
-    // Выводим название, иконку, сколько штук у нас есть и цену
-    item.innerHTML = `
-      <span class="shop-name">${crop.emoji} ${crop.name} <small style="opacity: 0.7; font-size: 11px;">(У вас: ${seedCount} шт.)</small></span>
-      <span class="shop-price">${crop.price}💰</span>
-    `;
-    
-    item.onclick = () => {
-      if (coins >= crop.price) {
-        coins -= crop.price; // Списываем монеты сразу!
-        inventory[key] = seedCount + 1; // Кладем 1 семечко в инвентарь
-        selectedCropKey = key; // Делаем это семечко активным для посадки
-        
-        saveProgress();
-        saveInventory(); // Сохраняем рюкзак
-        renderShop(); // Обновляем магазин, чтобы циферка "У вас: Х шт." изменилась
-        
-        tg.showAlert(`Вы купили семя: ${crop.name}. Теперь у вас их ${inventory[key]} шт. Переходим на поле.`);
-        showScreen('field-screen');
-        renderField();
-      } else {
-        tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
+    const left = document.createElement('div');
+    left.className = 'shop-left';
+    const nameEl = document.createElement('span');
+    nameEl.className = 'shop-name';
+    nameEl.textContent = `${crop.emoji} ${crop.name}`;
+    const ownEl = document.createElement('small');
+    ownEl.style.opacity = '0.75';
+    ownEl.style.fontSize = '11px';
+    ownEl.textContent = `У вас: ${inventory[key] || 0} шт.`;
+    left.appendChild(nameEl);
+    left.appendChild(ownEl);
+    const right = document.createElement('div');
+    right.className = 'shop-right';
+    const qtyControl = document.createElement('div');
+    qtyControl.className = 'qty-control';
+    const minusBtn = document.createElement('button');
+    minusBtn.className = 'qty-btn';
+    minusBtn.textContent = '−';
+    const qtyValue = document.createElement('span');
+    qtyValue.className = 'qty-value';
+    qtyValue.textContent = String(qty);
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'qty-btn';
+    plusBtn.textContent = '+';
+    qtyControl.appendChild(minusBtn);
+    qtyControl.appendChild(qtyValue);
+    qtyControl.appendChild(plusBtn);
+    const buyBtn = document.createElement('button');
+    buyBtn.className = 'buy-btn';
+    const updateControls = () => {
+      const totalPrice = qty * crop.price;
+      qtyValue.textContent = String(qty);
+      buyBtn.textContent = `Купить за ${totalPrice}💰`;
+      minusBtn.disabled = qty <= 1;
+      // Небольшая защита: нельзя ставить qty > 999
+      plusBtn.disabled = qty >= 999;
+      // Если денег не хватает на текущее qty — кнопку покупки гасим
+      buyBtn.disabled = coins < totalPrice;
+    };
+    minusBtn.onclick = () => {
+      if (qty > 1) {
+        qty -= 1;
+        updateControls();
       }
     };
+    plusBtn.onclick = () => {
+      if (qty < 999) {
+        qty += 1;
+        updateControls();
+      }
+    };
+    buyBtn.onclick = () => {
+      const totalPrice = qty * crop.price;
+      if (coins < totalPrice) {
+        tg.showAlert(`Не хватает монет! Нужно ${totalPrice}, у вас ${coins}.`);
+        return;
+      }
+      coins -= totalPrice;
+      inventory[key] = (inventory[key] || 0) + qty;
+      selectedCropKey = key;
+      saveProgress();
+      saveInventory();
+      tg.showAlert(
+        `Вы купили ${qty} шт. семян «${crop.name}». Теперь у вас ${inventory[key]} шт.`
+      );
+      // Перерисовываем магазин, чтобы обновились монеты/остатки
+      renderShop();
+    };
+    right.appendChild(qtyControl);
+    right.appendChild(buyBtn);
+    item.appendChild(left);
+    item.appendChild(right);
+    updateControls();
     shopContainer.appendChild(item);
   }
+  coinsEl.textContent = coins;
 }
 
 function renderInventory() {
