@@ -26,7 +26,7 @@
 
     body::before {
       content: '';
-      position: absolute;
+      position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(44, 62, 80, 0.6);
       z-index: 1;
@@ -465,10 +465,6 @@
       animation: dropdownFadeIn 0.2s ease;
     }
 
-    @keyframes dropdownFadeIn {
-      from { opacity: 0; transform: translate(-50%, 10px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
     /* --- Кол-во семян в магазине (+ / счетчик / -) --- */
 .shop-item {
   gap: 10px;
