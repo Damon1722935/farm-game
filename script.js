@@ -217,7 +217,7 @@ function buySeeds(cropKey) {
   }
 }
     shopContainer.appendChild(item);
-  }
+  
 }
 
 function renderInventory() {
