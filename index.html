@@ -590,33 +590,40 @@
   );
   animation: roadMove 0.7s linear infinite;
 }
-.tractor {
+.tractor-img {
   position: absolute;
   left: 50%;
   top: 52%;
   transform: translate(-50%, -50%);
-  font-size: 42px;
-  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45));
-  animation: tractorBounce 0.45s ease-in-out infinite;
+  width: 120px;
+  height: auto;
   z-index: 2;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
+  animation: tractorBounce 0.45s ease-in-out infinite;
+  user-select: none;
+  pointer-events: none;
 }
 .trees-layer {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  overflow: hidden;
 }
-.tree {
+.tree-img {
   position: absolute;
-  right: -40px;
-  font-size: 26px;
+  right: -80px;
+  width: 52px;
+  height: auto;
   opacity: 0.95;
-  animation: treeFly 2s linear infinite;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
+  animation: treeFly 2.4s linear infinite;
+  user-select: none;
 }
-.tree.t1 { top: 10px; animation-delay: 0s; }
-.tree.t2 { top: 14px; animation-delay: 0.4s; }
-.tree.t3 { top: 72px; animation-delay: 0.8s; }
-.tree.t4 { top: 76px; animation-delay: 1.2s; }
-.tree.t5 { top: 44px; animation-delay: 1.6s; }
+.tree-img.t1 { top: 6px;  animation-delay: 0s; }
+.tree-img.t2 { top: 12px; animation-delay: 0.5s; }
+.tree-img.t3 { top: 68px; animation-delay: 1s; }
+.tree-img.t4 { top: 74px; animation-delay: 1.5s; }
+.tree-img.t5 { top: 38px; animation-delay: 2s; }
 @keyframes roadMove {
   from { transform: translate(0, -50%); }
   to   { transform: translate(-42px, -50%); }
@@ -638,13 +645,15 @@
     <div class="road-wrap">
       <div class="road">
         <div class="road-line"></div>
-        <div class="tractor">🚜</div>
+        <!-- Трактор PNG -->
+        <img src="img/loading/tractor.png" alt="tractor" class="tractor-img" />
+        <!-- Яблони PNG -->
         <div class="trees-layer">
-          <span class="tree t1">🌳</span>
-          <span class="tree t2">🌳</span>
-          <span class="tree t3">🌳</span>
-          <span class="tree t4">🌳</span>
-          <span class="tree t5">🌳</span>
+          <img src="img/loading/apple-tree.png" alt="tree" class="tree-img t1" />
+          <img src="img/loading/apple-tree.png" alt="tree" class="tree-img t2" />
+          <img src="img/loading/apple-tree.png" alt="tree" class="tree-img t3" />
+          <img src="img/loading/apple-tree.png" alt="tree" class="tree-img t4" />
+          <img src="img/loading/apple-tree.png" alt="tree" class="tree-img t5" />
         </div>
       </div>
     </div>
