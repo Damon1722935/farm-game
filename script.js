@@ -309,28 +309,34 @@ function renderField() {
       plot.style.cursor = 'pointer';
       plot.style.opacity = '1';
 
-      // Делаем обработчик клика асинхронным (async)
+      // Обработчик клика
       plot.onclick = async () => {
         const crop = cropsConfig[selectedCropKey];
         
-        // Проверяем: есть ли выбранные семена в инвентаре?
+        // 1. Проверяем наличие семян в инвентаре ДО запуска анимации
         if (inventory[selectedCropKey] > 0) {
           
-          // 1. Запускаем нашу красивую анимацию лопаты и полива!
-          // Передаем сам DOM-элемент грядки (plot) прямо в функцию анимации.
+          // 2. Блокируем повторные клики по ЭТОЙ ЖЕ грядке на время анимации
+          plot.onclick = null;
+          plot.style.cursor = 'wait';
+
+          // 3. Сразу списываем семечко из инвентаря (предотвращает уход в минус)
+          inventory[selectedCropKey]--;
+          saveInventory();
+
+          // 4. Запускаем анимацию посадки
           await runPlantingAnimation(plot);
 
-          // 2. После того, как анимация полностью закончилась, списываем семечко и сажаем
-          inventory[selectedCropKey]--; // Тратим 1 семечко из рюкзака
-          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() }; // Сажаем
+          // 5. Фиксируем посадку в базе данных
+          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
           
           saveProgress();
-          saveInventory(); // Сохраняем рюкзак
-          renderField(); // Перерисовываем поле, чтобы запустить таймер роста
+          renderField(); // Перерисовываем поле, чтобы запустить таймер
           
-          tg.showAlert(`Ты посадил ${crop.name}! Осталось семян: ${inventory[selectedCropKey]} шт.`);
+          // Уведомление об успешной посадке удалено — всё происходит "тихо" и плавно!
+
         } else {
-          // Если семян нет — отправляем в магазин
+          // 6. Показываем алерт ТОЛЬКО если семена закончились
           tg.showAlert(`У вас нет семян ${crop.name}! Купите их сначала в магазине.`);
           showScreen('shop-screen');
           renderShop();
