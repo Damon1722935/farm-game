@@ -20,7 +20,7 @@ const cropsConfig = {
 };
 
 // Сброс данных при смене версии
-const currentVersion = 'v2.3';
+const currentVersion = 'v2.4';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
