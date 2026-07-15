@@ -61,13 +61,14 @@ function saveAllGuilds() {
 
 // Никнейм игрока (автоматически берем из Telegram, если он доступен)
 let currentNick = localStorage.getItem('farm_current_nick');
-if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
-  const user = window.Telegram.WebApp.initDataUnsafe.user;
-  // Если у человека есть юзернейм (например, @alex), берем его. Если нет — берем Имя.
-  currentNick = user.username ? `@${user.username}` : user.first_name;
-  localStorage.setItem('farm_current_nick', currentNick);
-} else if (!currentNick) {
-  currentNick = 'Игрок'; // Оставляем для тестов в обычном браузере
+if (!currentNick) {
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+    const user = window.Telegram.WebApp.initDataUnsafe.user;
+    // Если у человека есть юзернейм (например, @alex), берем его. Если нет — берем Имя.
+    currentNick = user.username ? `@${user.username}` : user.first_name;
+  } else {
+    currentNick = 'Игрок'; // Оставляем для тестов в обычном браузере
+  }
   localStorage.setItem('farm_current_nick', currentNick);
 }
 
@@ -91,7 +92,14 @@ function saveGuild() {
 // Элементы DOM
 const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
-const fieldBtn = document.getElementById('fieldBtn');
+
+// Элементы КАРТЫ и выпадающего списка
+const mapBtn = document.getElementById('mapBtn');
+const mapDropdown = document.getElementById('mapDropdown');
+const goToFieldBtn = document.getElementById('goToFieldBtn');
+const goToGardenBtn = document.getElementById('goToGardenBtn');
+const goToPenBtn = document.getElementById('goToPenBtn');
+
 const shopBtn = document.getElementById('shopBtn');
 const guildBtn = document.getElementById('guildBtn');
 const harvestBtn = document.getElementById('harvestBtn'); // кнопка сбора
@@ -99,8 +107,9 @@ const harvestBtn = document.getElementById('harvestBtn'); // кнопка сбо
 const shopContainer = document.getElementById('shop');
 const inventoryBtn = document.getElementById('inventoryBtn');
 const inventoryContainer = document.getElementById('inventory');
+
 // Элементы гильдии
-const guildStatsContainer = document.getElementById('guild-stats'); // Находим сам блок статистики
+const guildStatsContainer = document.getElementById('guild-stats'); 
 const guildNameEl = document.getElementById('guild-name');
 const guildLeaderEl = document.getElementById('guild-leader');
 const guildMembersCountEl = document.getElementById('guild-members-count');
@@ -119,11 +128,65 @@ function showScreen(screenId) {
   if (screen) screen.classList.add('active');
 }
 
-fieldBtn.onclick = () => showScreen('field-screen');
-shopBtn.onclick = () => { renderShop(); showScreen('shop-screen'); };
-guildBtn.onclick = () => { renderGuildInfo(); showScreen('guild-screen'); };
+// === ЛОГИКА ВЫПАДАЮЩЕГО СПИСКА КАРТЫ ===
 
-inventoryBtn.onclick = () => { renderInventory(); showScreen('inventory-screen'); };
+// Открытие/закрытие меню по клику на кнопку Карта
+if (mapBtn && mapDropdown) {
+  mapBtn.onclick = (e) => {
+    e.stopPropagation(); // Предотвращаем закрытие при клике на саму кнопку
+    mapDropdown.classList.toggle('show');
+  };
+}
+
+// Закрываем меню, если кликнуть в любую другую область экрана
+window.onclick = (event) => {
+  if (mapDropdown && mapDropdown.classList.contains('show')) {
+    if (!event.target.matches('#mapBtn') && !event.target.closest('#mapBtn')) {
+      mapDropdown.classList.remove('show');
+    }
+  }
+};
+
+// Переходы по локациям карты
+if (goToFieldBtn) {
+  goToFieldBtn.onclick = () => {
+    showScreen('field-screen');
+    mapDropdown.classList.remove('show');
+  };
+}
+
+if (goToGardenBtn) {
+  goToGardenBtn.onclick = () => {
+    showScreen('garden-screen');
+    mapDropdown.classList.remove('show');
+  };
+}
+
+if (goToPenBtn) {
+  goToPenBtn.onclick = () => {
+    showScreen('pen-screen');
+    mapDropdown.classList.remove('show');
+  };
+}
+
+// Переходы на другие экраны (при переходе закрываем выпадающее меню на всякий случай)
+shopBtn.onclick = () => { 
+  if (mapDropdown) mapDropdown.classList.remove('show');
+  renderShop(); 
+  showScreen('shop-screen'); 
+};
+
+guildBtn.onclick = () => { 
+  if (mapDropdown) mapDropdown.classList.remove('show');
+  renderGuildInfo(); 
+  showScreen('guild-screen'); 
+};
+
+inventoryBtn.onclick = () => { 
+  if (mapDropdown) mapDropdown.classList.remove('show');
+  renderInventory(); 
+  showScreen('inventory-screen'); 
+};
 
 function getTimeLeft(plantedAt, growTimeSeconds) {
   const now = Date.now();
@@ -138,8 +201,6 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-// --- ОБНОВЛЕННЫЙ МАГАЗИН С ВЫБОРОМ КОЛИЧЕСТВА ---
-
 function renderShop() {
   shopContainer.innerHTML = '';
   for (const key in cropsConfig) {
@@ -150,70 +211,30 @@ function renderShop() {
     // Получаем текущее количество семян в рюкзаке
     const seedCount = inventory[key] || 0;
     
-    // Пересобираем верстку: слева инфо, справа — выбор количества и кнопка купить
+    // Выводим название, иконку, сколько штук у нас есть и цену
     item.innerHTML = `
-      <div class="shop-info">
-        <span class="shop-name">${crop.emoji} ${crop.name}</span>
-        <small style="opacity: 0.7; font-size: 11px; color: #aaa;">У вас: ${seedCount} шт.</small>
-        <span class="shop-price" style="margin-top: 4px; display: block; font-weight: bold; color: #f1c40f;">${crop.price}💰 / шт.</span>
-      </div>
-      <div class="shop-actions">
-        <div class="quantity-controller">
-          <button class="qty-btn" onclick="changeQty('${key}', -1)">-</button>
-          <input type="number" class="qty-input" value="1" min="1" id="qty-${key}" onchange="validateQty(this)">
-          <button class="qty-btn" onclick="changeQty('${key}', 1)">+</button>
-        </div>
-        <button class="btn-buy" onclick="buySeeds('${key}')">Купить</button>
-      </div>
+      <span class="shop-name">${crop.emoji} ${crop.name} <small style="opacity: 0.7; font-size: 11px;">(У вас: ${seedCount} шт.)</small></span>
+      <span class="shop-price">${crop.price}💰</span>
     `;
     
+    item.onclick = () => {
+      if (coins >= crop.price) {
+        coins -= crop.price; // Списываем монеты сразу!
+        inventory[key] = seedCount + 1; // Кладем 1 семечко в инвентарь
+        selectedCropKey = key; // Делаем это семечко активным для посадки
+        
+        saveProgress();
+        saveInventory(); // Сохраняем рюкзак
+        renderShop(); // Обновляем магазин, чтобы циферка "У вас: Х шт." изменилась
+        
+        tg.showAlert(`Вы купили семя: ${crop.name}. Теперь у вас их ${inventory[key]} шт. Переходим на поле.`);
+        showScreen('field-screen');
+        renderField();
+      } else {
+        tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
+      }
+    };
     shopContainer.appendChild(item);
-  }
-}
-
-// Функция для изменения количества кнопками +/-
-function changeQty(cropKey, delta) {
-  const input = document.getElementById(`qty-${cropKey}`);
-  if (!input) return;
-  let val = parseInt(input.value) || 1;
-  val += delta;
-  if (val < 1) val = 1; // Защита: нельзя купить меньше 1 семечка
-  input.value = val;
-}
-
-// Валидация при ручном вводе количества в поле
-function validateQty(input) {
-  let val = parseInt(input.value);
-  if (isNaN(val) || val < 1) {
-    val = 1;
-  }
-  input.value = val;
-}
-
-// Функция пакетной покупки семян
-function buySeeds(cropKey) {
-  const input = document.getElementById(`qty-${cropKey}`);
-  const quantity = input ? (parseInt(input.value) || 1) : 1;
-  const crop = cropsConfig[cropKey];
-  if (!crop) return;
-
-  const totalCost = crop.price * quantity;
-  const seedCount = inventory[cropKey] || 0;
-
-  if (coins >= totalCost) {
-    coins -= totalCost; // Списываем деньги за все семена разом!
-    inventory[cropKey] = seedCount + quantity; // Добавляем семена в инвентарь
-    selectedCropKey = cropKey; // Автоматически выбираем это семя для посадки
-    
-    saveProgress();
-    saveInventory(); // Сохраняем рюкзак
-    renderShop(); // Перерисовываем магазин, чтобы обновилось "У вас: Х шт."
-    
-    tg.showAlert(`Вы успешно купили семена: ${crop.name} (${quantity} шт.) за ${totalCost} 🪙! Переходим на поле.`);
-    showScreen('field-screen');
-    renderField();
-  } else {
-    tg.showAlert(`Не хватает монет! Нужно ${totalCost} 🪙 на покупку ${quantity} шт., у вас всего ${coins} 🪙.`);
   }
 }
 
@@ -309,34 +330,33 @@ function renderField() {
       plot.style.cursor = 'pointer';
       plot.style.opacity = '1';
 
-      // Обработчик клика
+      // Делаем обработчик клика асинхронным (async)
       plot.onclick = async () => {
         const crop = cropsConfig[selectedCropKey];
         
-        // 1. Проверяем наличие семян в инвентаре ДО запуска анимации
+        // Проверяем: есть ли выбранные семена в инвентаре?
         if (inventory[selectedCropKey] > 0) {
           
-          // 2. Блокируем повторные клики по ЭТОЙ ЖЕ грядке на время анимации
+          // Блокируем повторные клики на время анимации
           plot.onclick = null;
           plot.style.cursor = 'wait';
 
-          // 3. Сразу списываем семечко из инвентаря (предотвращает уход в минус)
+          // Списываем семечко из инвентаря ДО начала анимации, защищая от багов
           inventory[selectedCropKey]--;
           saveInventory();
 
-          // 4. Запускаем анимацию посадки
+          // 1. Запускаем нашу красивую анимацию лопаты и полива!
           await runPlantingAnimation(plot);
 
-          // 5. Фиксируем посадку в базе данных
-          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
+          // 2. После того, как анимация полностью закончилась, фиксируем посадку
+          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() }; // Сажаем
           
           saveProgress();
-          renderField(); // Перерисовываем поле, чтобы запустить таймер
+          renderField(); // Перерисовываем поле, чтобы запустить таймер роста
           
-          // Уведомление об успешной посадке удалено — всё происходит "тихо" и плавно!
-
+          // Уведомление об успешной посадке удалено согласно договоренности!
         } else {
-          // 6. Показываем алерт ТОЛЬКО если семена закончились
+          // Если семян нет — отправляем в магазин
           tg.showAlert(`У вас нет семян ${crop.name}! Купите их сначала в магазине.`);
           showScreen('shop-screen');
           renderShop();
@@ -486,10 +506,6 @@ leaveGuildBtn.onclick = () => {
   const guildIndex = allGuilds.findIndex(g => g.name === guildName);
   if (guildIndex !== -1) {
     allGuilds[guildIndex].members = allGuilds[guildIndex].members.filter(m => m !== currentNick);
-    // Если в гильдии больше не осталось участников, удаляем саму гильдию из общего списка
-    if (allGuilds[guildIndex].members.length === 0) {
-      allGuilds.splice(guildIndex, 1);
-    }
     saveAllGuilds();
   }
 
@@ -512,7 +528,7 @@ disbandGuildBtn.onclick = () => {
     return;
   }
 
-  if (!confirm('Вы уверены? Гильдия будет распущена.')) return;
+  if (!confirm('Вы уверены? Guild будет распущена.')) return;
 
   // Удаляем саму гильдию из общей "базы данных"
   allGuilds = allGuilds.filter(g => g.name !== guildName);
