@@ -537,6 +537,40 @@
 #farmerLevel { color: #a8e6cf; }
 #farmerPoints { color: #d6ecff; }
 .header-stats .coins-display { color: #f1c40f; }
+    /* БАЗА ЭКРАНА ЗАГРУЗКИ */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.loading-screen.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.loading-scene {
+  width: min(92vw, 460px);
+  text-align: center;
+}
+.loading-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  margin-bottom: 16px;
+}
+.road-wrap {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
 /* ===== LOADING SCREEN UPDATE ===== */
 .road {
   position: relative;
@@ -642,16 +676,16 @@
         <div class="road-line"></div>
         <!-- Ряд деревьев (за трактором) -->
         <div class="trees-row">
-          <img src="/img/apple-tree.png" alt="tree" class="tree-row-img" />
-          <img src="/img/apple-tree.png" alt="tree" class="tree-row-img" />
-          <img src="/img/apple-tree.png" alt="tree" class="tree-row-img" />
-          <img src="/img/apple-tree.png" alt="tree" class="tree-row-img" />
-          <img src="/img/apple-tree.png" alt="tree" class="tree-row-img" />
-          <img src="/img/apple-tree.png" alt="tree" class="tree-row-img" />
-          <img src="/img/apple-tree.png" alt="tree" class="tree-row-img" />
+          <img src="img/apple-tree.png" alt="tree" class="tree-row-img" />
+          <img src="img/apple-tree.png" alt="tree" class="tree-row-img" />
+          <img src="img/apple-tree.png" alt="tree" class="tree-row-img" />
+          <img src="img/apple-tree.png" alt="tree" class="tree-row-img" />
+          <img src="img/apple-tree.png" alt="tree" class="tree-row-img" />
+          <img src="img/apple-tree.png" alt="tree" class="tree-row-img" />
+          <img src="img/apple-tree.png" alt="tree" class="tree-row-img" />
         </div>
         <!-- Трактор -->
-        <img src="/img/tractor.png" alt="tractor" class="tractor-img" />
+        <img src="img/tractor.png" alt="tractor" class="tractor-img" />
       </div>
     </div>
     <!-- Прогресс-бар -->
