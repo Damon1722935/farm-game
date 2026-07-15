@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Ферма</title>
   <style>
-body {
+    body {
       margin: 0;
       padding: 10px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -60,7 +60,7 @@ body {
       color: #f1c40f;
     }
 
-.btn-group {
+    .btn-group {
       display: flex;
       /* УБРАЛИ flex-wrap: wrap, чтобы кнопки гарантированно выстроились в ОДНУ строчку */
       justify-content: space-between; 
@@ -84,7 +84,7 @@ body {
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 
-/* Настройки кнопок меню */
+    /* Настройки кнопок меню */
     .btn-group button {
       flex: 1;
       background: rgba(255, 255, 255, 0.25) !important; /* Матовое стекло */
@@ -145,7 +145,7 @@ body {
       margin: 15px 0;
     }
 
-.plot {
+    .plot {
       height: 65px; /* Уменьшили высоту с 80px до 65px для компактности */
       border: 1.5px solid rgba(255, 255, 255, 0.4) !important; 
       border-radius: 10px; /* Чуть уменьшили скругление углов под новый размер */
@@ -164,7 +164,7 @@ body {
 
       position: relative;
       overflow: visible;
-  /* Добавляем приоритет отображения при анимации */
+      /* Добавляем приоритет отображения при анимации */
       z-index: 1;
     }
 
@@ -206,9 +206,9 @@ body {
       cursor: pointer;
     }
     .shop-name { 
-  font-weight: bold; 
-  color: #ffffff; /* Делаем текст названия и количества белым */
-}
+      font-weight: bold; 
+      color: #ffffff; /* Делаем текст названия и количества белым */
+    }
     .shop-price { color: #f1c40f; }
 
     #guild-stats {
@@ -282,18 +282,18 @@ body {
       font-weight: bold;
     }
 
-/* 1. Находим ЛЮБОЙ блок, внутри которого напрямую лежат грядки (.plot), 
-   и принудительно двигаем его вниз на темную почву */
-div:has(> .plot) {
-  margin-top: 170px !important; 
-}
+    /* 1. Находим ЛЮБОЙ блок, внутри которого напрямую лежат грядки (.plot), 
+       и принудительно двигаем его вниз на темную почву */
+    div:has(> .plot) {
+      margin-top: 170px !important; 
+    }
 
-/* 2. На всякий случай убираем жесткое вертикальное центрирование экрана, 
-   чтобы элементы могли свободно смещаться вниз */
-#field-screen {
-  justify-content: flex-start !important;
-  padding-top: 15px !important;
-}
+    /* 2. На всякий случай убираем жесткое вертикальное центрирование экрана, 
+       чтобы элементы могли свободно смещаться вниз */
+    #field-screen {
+      justify-content: flex-start !important;
+      padding-top: 15px !important;
+    }
 
     /* Подправим таймер, чтобы он не перекрывал наши новые компактные растения */
     .plot-timer {
@@ -386,110 +386,88 @@ div:has(> .plot) {
     }
 
     /* Убираем фон, рамки и тени у кнопок навигации */
-#fieldBtn, #shopBtn, #inventoryBtn, #guildBtn {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-    padding: 5px 10px !important; /* небольшие отступы для удобства нажатия пальцем */
-    cursor: pointer;
-    font-size: 28px; /* настраивай размер иконки здесь, если нужно крупнее */
-    transition: transform 0.1s ease, opacity 0.1s ease;
-    
-    /* Центрируем иконку внутри кнопки */
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Эффект обратной связи при нажатии (кнопка слегка сжимается) */
-#fieldBtn:active, #shopBtn:active, #inventoryBtn:active, #guildBtn:active {
-    transform: scale(0.85);
-    opacity: 0.7;
-}
-    /* --- НОВЫЕ СТИЛИ ДЛЯ ВЫБОРА КОЛИЧЕСТВА В МАГАЗИНЕ --- */
-    .shop-item {
-      background: rgba(255,255,255,0.1);
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: default !important; /* Убираем курсор руки со всей карточки */
-      border: 1.5px solid rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(5px);
-    }
-    .shop-info {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .shop-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-    }
-    .quantity-controller {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .qty-btn {
-      background: rgba(255, 255, 255, 0.2) !important;
-      border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
-      color: white !important;
-      border-radius: 6px;
-      width: 30px;
-      height: 30px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 !important;
-      box-shadow: none !important;
-      transition: background-color 0.1s, transform 0.1s;
-    }
-    .qty-btn:active {
-      transform: scale(0.9);
-      background: rgba(255, 255, 255, 0.4) !important;
-    }
-    .qty-input {
-      width: 40px;
-      height: 28px;
-      background: rgba(0, 0, 0, 0.5) !important;
-      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-      color: white !important;
-      text-align: center;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: bold;
-      outline: none;
-    }
-    /* Скрываем дефолтные стрелочки инпута */
-    .qty-input::-webkit-outer-spin-button,
-    .qty-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    .btn-buy {
-      background: #2ecc71 !important;
-      color: white !important;
+    #mapBtn, #shopBtn, #inventoryBtn, #guildBtn {
+      background: transparent !important;
       border: none !important;
-      border-radius: 8px !important;
-      padding: 6px 14px !important;
-      font-size: 13px !important;
-      font-weight: bold !important;
+      box-shadow: none !important;
+      outline: none !important;
+      padding: 5px 10px !important; /* небольшие отступы для удобства нажатия пальцем */
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
-      transition: all 0.1s ease;
+      font-size: 28px; /* настраивай размер иконки здесь, если нужно крупнее */
+      transition: transform 0.1s ease, opacity 0.1s ease;
+      
+      /* Центрируем иконку внутри кнопки */
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
     }
-    .btn-buy:active {
-      transform: scale(0.95) !important;
-      background: #27ae60 !important;
+
+    /* Эффект обратной связи при нажатии (кнопка слегка сжимается) */
+    #mapBtn:active, #shopBtn:active, #inventoryBtn:active, #guildBtn:active {
+      transform: scale(0.85);
+      opacity: 0.7;
+    }
+
+    /* === СТИЛИ ДЛЯ ВЫПАДАЮЩЕГО СПИСКА КАРТЫ === */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      flex: 1;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      bottom: 110%; /* Открывается ВВЕРХ над меню */
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(44, 62, 80, 0.95);
+      backdrop-filter: blur(10px);
+      min-width: 140px;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
+      z-index: 1000;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+
+    /* Кнопки внутри выпадающего списка */
+    .dropdown-content button {
+      color: white;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+      background: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      width: 100%;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      border-radius: 0;
+    }
+
+    .dropdown-content button:hover {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      transform: none !important; /* Убираем увеличение для строк выпадайки */
+    }
+
+    .dropdown-content button:active {
+      background-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Системный класс для отображения списка */
+    .dropdown-content.show {
+      display: block;
+      animation: dropdownFadeIn 0.2s ease;
+    }
+
+    @keyframes dropdownFadeIn {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
     }
   </style>
 </head>
@@ -501,11 +479,19 @@ div:has(> .plot) {
       <span class="coins-display">Монеты: <span id="coins">100</span></span>
     </div>
 
-<div class="btn-group">
-      <button id="fieldBtn">
-        <img src="https://img.icons8.com/fluency/96/wheat.png" alt="Поле" class="btn-icon">
-      </button>
-<button id="shopBtn">
+    <div class="btn-group">
+      <div class="dropdown">
+        <button id="mapBtn">
+          <img src="https://img.icons8.com/fluency/96/map.png" alt="Карта" class="btn-icon">
+        </button>
+        <div id="mapDropdown" class="dropdown-content">
+          <button id="goToFieldBtn">Поле 🌱</button>
+          <button id="goToGardenBtn">Сад 🌳</button>
+          <button id="goToPenBtn">Загон 🐄</button>
+        </div>
+      </div>
+
+      <button id="shopBtn">
         <img src="https://img.icons8.com/fluency/96/shop.png" alt="Магазин" class="btn-icon">
       </button>
       <button id="inventoryBtn">
@@ -516,25 +502,38 @@ div:has(> .plot) {
       </button>
     </div>
 
-    <!-- ЭКРАН: Поле -->
     <div id="field-screen" class="screen active">
       <h3>Поле</h3>
       <div id="field"></div>
       <button id="harvestBtn" class="btn-harvest" style="width:100%; margin-top:10px;">Собрать урожай</button>
     </div>
 
-    <!-- ЭКРАН: Магазин -->
+    <div id="garden-screen" class="screen">
+      <h3>Сад 🌳</h3>
+      <div style="text-align: center; margin-top: 100px; color: #ccc; text-shadow: 1px 1px 2px black;">
+        <p style="font-size: 18px; font-weight: bold;">Здесь пока пусто.</p>
+        <p style="font-size: 14px; opacity: 0.8;">Скоро тут будут расти прекрасные фруктовые деревья! 🍎</p>
+      </div>
+    </div>
+
+    <div id="pen-screen" class="screen">
+      <h3>Загон 🐄</h3>
+      <div style="text-align: center; margin-top: 100px; color: #ccc; text-shadow: 1px 1px 2px black;">
+        <p style="font-size: 18px; font-weight: bold;">Здесь пока пусто.</p>
+        <p style="font-size: 14px; opacity: 0.8;">Скоро здесь будут жить ваши животные! 🐑</p>
+      </div>
+    </div>
+
     <div id="shop-screen" class="screen">
       <h3>Магазин семян</h3>
       <div id="shop"></div>
     </div>
-<!-- ЭКРАН: Инвентарь -->
+
     <div id="inventory-screen" class="screen">
       <h3>Рюкзак с семенами</h3>
       <div id="inventory"></div>
     </div>
 
-    <!-- ЭКРАН: Гильдия -->
     <div id="guild-screen" class="screen">
       <h3>Гильдия</h3>
       <div id="guild-stats">
@@ -553,28 +552,24 @@ div:has(> .plot) {
     </div>
   </div>
 
-<script>
+  <script>
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-async function runPlantingAnimation(plotElement) {
-      // Блокируем клики по грядке на время анимации
+    async function runPlantingAnimation(plotElement) {
       plotElement.style.pointerEvents = 'none';
-      
-      // Временно приподнимаем грядку по z-index, чтобы лопата не пряталась за соседними грядками
       plotElement.style.zIndex = '50';
       
-      // Временно очищаем грядку от старого содержимого
       const originalHTML = plotElement.innerHTML;
       plotElement.innerHTML = '';
 
-      // --- 1. ШАГ: ЛОПАТА (теперь точно spade!) ---
+      // --- 1. ШАГ: ЛОПАТА ---
       const shovel = document.createElement('img');
       shovel.src = 'https://img.icons8.com/fluency/96/spade.png';
       shovel.className = 'anim-tool shovel-dig';
       plotElement.appendChild(shovel);
 
-      await delay(1200); // Ждем пока лопата закончит копать
-      shovel.remove(); // Удаляем лопату
+      await delay(1200); 
+      shovel.remove(); 
 
       // --- 2. ШАГ: ЛЕЙКА И ВОДА ---
       const wateringCan = document.createElement('img');
@@ -582,7 +577,6 @@ async function runPlantingAnimation(plotElement) {
       wateringCan.className = 'anim-tool watering-can-pour';
       plotElement.appendChild(wateringCan);
 
-      // Создаем шкалу полива
       const bar = document.createElement('div');
       bar.className = 'watering-bar';
       const progress = document.createElement('div');
@@ -590,14 +584,11 @@ async function runPlantingAnimation(plotElement) {
       bar.appendChild(progress);
       plotElement.appendChild(bar);
 
-      // Ждем немного, пока лейка подлетит и наклонится
       await delay(350);
       
-      // Показываем шкалу и запускаем заполнение
       bar.style.opacity = '1';
       setTimeout(() => { progress.style.width = '100%'; }, 50);
 
-      // Запускаем генерацию капель воды во время полива
       const dripInterval = setInterval(() => {
         const drop = document.createElement('div');
         drop.className = 'water-drop';
@@ -608,9 +599,8 @@ async function runPlantingAnimation(plotElement) {
         setTimeout(() => drop.remove(), 500);
       }, 80);
 
-      await delay(1400); // Ждем завершения полива
+      await delay(1400); 
 
-      // Выключаем дождь и плавно убираем шкалу и лейку
       clearInterval(dripInterval);
       bar.style.opacity = '0';
       await delay(300);
@@ -618,7 +608,6 @@ async function runPlantingAnimation(plotElement) {
       wateringCan.remove();
       bar.remove();
 
-      // Возвращаем исходную верстку грядки, сбрасываем z-index и включаем клики обратно
       plotElement.innerHTML = originalHTML;
       plotElement.style.pointerEvents = 'auto';
       plotElement.style.zIndex = '';
@@ -626,8 +615,6 @@ async function runPlantingAnimation(plotElement) {
   </script>
 
   <script src="script.js"></script>
-</body>
-</html>
 </body>
 </html>
 
