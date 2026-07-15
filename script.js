@@ -18,6 +18,7 @@ const cropsConfig = {
   wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾', growTime: 300 },
   strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓', growTime: 480 }
 };
+const farmerLevelThresholds = [0, 300, 700, 1500, 3000];
 
 // Сброс данных при смене версии
 const currentVersion = 'v2.5';
@@ -40,6 +41,7 @@ let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null
 let selectedCropKey = 'carrot';
 // Инвентарь семян (по умолчанию у игрока 0 семян каждого типа)
 let inventory = JSON.parse(localStorage.getItem('farm_inventory')) || { carrot: 0, wheat: 0, strawberry: 0 };
+let farmerPoints = parseInt(localStorage.getItem('farm_farmer_points')) || 0;
 
 function saveInventory() {
   localStorage.setItem('farm_inventory', JSON.stringify(inventory));
@@ -79,6 +81,7 @@ function saveCurrentNick() {
 function saveProgress() {
   localStorage.setItem('farm_coins', coins.toString());
   localStorage.setItem('farm_plots', JSON.stringify(plots));
+  localStorage.setItem('farm_farmer_points', farmerPoints.toString());
 }
 
 function saveGuild() {
@@ -92,6 +95,8 @@ function saveGuild() {
 // Элементы DOM
 const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
+const farmerLevelEl = document.getElementById('farmerLevel');
+const farmerPointsEl = document.getElementById('farmerPoints');
 
 // Элементы КАРТЫ и выпадающего списка
 const mapBtn = document.getElementById('mapBtn');
@@ -324,6 +329,22 @@ function renderInventory() {
     inventoryContainer.appendChild(item);
   }
 }
+function getFarmerLevelByPoints(points) {
+  if (points >= farmerLevelThresholds[4]) return 5;
+  if (points >= farmerLevelThresholds[3]) return 4;
+  if (points >= farmerLevelThresholds[2]) return 3;
+  if (points >= farmerLevelThresholds[1]) return 2;
+  return 1;
+}
+function renderFarmerStats() {
+  const level = getFarmerLevelByPoints(farmerPoints);
+  if (farmerLevelEl) {
+    farmerLevelEl.textContent = `Уровень фермера: ${level}`;
+  }
+  if (farmerPointsEl) {
+    farmerPointsEl.textContent = `Очки развития: ${farmerPoints}`;
+  }
+}
 
 function renderField() {
   field.innerHTML = '';
@@ -416,6 +437,7 @@ function renderField() {
   });
 
   coinsEl.textContent = coins;
+  renderFarmerStats();
 }
 
 // --- Гильдия ---
@@ -655,3 +677,4 @@ renderField();
 renderShop();
 renderGuildInfo();
 renderInventory();
+renderFarmerStats();
