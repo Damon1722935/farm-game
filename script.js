@@ -14,14 +14,101 @@ if (window.Telegram && window.Telegram.WebApp) {
 // --------------------------------------
 
 const cropsConfig = {
-  carrot: { name: 'Морковь', price: 20, reward: 30, emoji: '🥕', growTime: 120 },
-  wheat:  { name: 'Пшеница',  price: 30, reward: 50, emoji: '🌾', growTime: 300 },
-  strawberry: { name: 'Клубника', price: 50, reward: 80, emoji: '🍓', growTime: 480 }
+  dill: {
+    name: 'Укроп',
+    price: 5,
+    reward: 8,
+    emoji: '🌿',
+    growTime: 30,
+    minLevel: 1,
+    xpReward: 2
+  },
+  carrot: {
+    name: 'Морковь',
+    price: 15,
+    reward: 25,
+    emoji: '🥕',
+    growTime: 60,
+    minLevel: 1,
+    xpReward: 5
+  },
+  potato: {
+    name: 'Картофель',
+    price: 30,
+    reward: 55,
+    emoji: '🥔',
+    growTime: 120,
+    minLevel: 2,
+    xpReward: 10
+  },
+  wheat: {
+    name: 'Пшеница',
+    price: 50,
+    reward: 95,
+    emoji: '🌾',
+    growTime: 300,
+    minLevel: 2,
+    xpReward: 15
+  },
+  cucumber: {
+    name: 'Огурец',
+    price: 80,
+    reward: 160,
+    emoji: '🥒',
+    growTime: 600,
+    minLevel: 3,
+    xpReward: 30
+  },
+  strawberry: {
+    name: 'Клубника',
+    price: 120,
+    reward: 250,
+    emoji: '🍓',
+    growTime: 900,
+    minLevel: 3,
+    xpReward: 45
+  },
+  tomato: {
+    name: 'Томат',
+    price: 200,
+    reward: 430,
+    emoji: '🍅',
+    growTime: 1800,
+    minLevel: 4,
+    xpReward: 80
+  },
+  corn: {
+    name: 'Кукуруза',
+    price: 350,
+    reward: 780,
+    emoji: '🌽',
+    growTime: 3600,
+    minLevel: 4,
+    xpReward: 150
+  },
+  eggplant: {
+    name: 'Баклажан',
+    price: 600,
+    reward: 1400,
+    emoji: '🍆',
+    growTime: 7200,
+    minLevel: 5,
+    xpReward: 300
+  },
+  watermelon: {
+    name: 'Арбуз',
+    price: 1000,
+    reward: 2500,
+    emoji: '🍉',
+    growTime: 14400,
+    minLevel: 5,
+    xpReward: 600
+  }
 };
 const farmerLevelThresholds = [0, 300, 700, 1500, 3000];
 
 // Сброс данных при смене версии
-const currentVersion = 'v2.5';
+const currentVersion = 'v2.6';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
@@ -38,9 +125,14 @@ if (storedVersion !== currentVersion) {
 
 let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
 let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
-let selectedCropKey = 'carrot';
+let selectedCropKey = 'dill';
 // Инвентарь семян (по умолчанию у игрока 0 семян каждого типа)
-let inventory = JSON.parse(localStorage.getItem('farm_inventory')) || { carrot: 0, wheat: 0, strawberry: 0 };
+let inventory = JSON.parse(localStorage.getItem('farm_inventory')) || {};
+for (const key in cropsConfig) {
+  if (typeof inventory[key] !== 'number') {
+    inventory[key] = 0;
+  }
+}
 let farmerPoints = parseInt(localStorage.getItem('farm_farmer_points')) || 0;
 
 function saveInventory() {
@@ -208,9 +300,11 @@ function formatTime(seconds) {
 
 function renderShop() {
   shopContainer.innerHTML = '';
+  const currentLevel = getCurrentFarmerLevel();
   for (const key in cropsConfig) {
     const crop = cropsConfig[key];
-    let qty = 1; // стартовое количество для покупки
+    let qty = 1;
+    const isUnlocked = currentLevel >= crop.minLevel;
     const item = document.createElement('div');
     item.className = 'shop-item';
     const left = document.createElement('div');
@@ -221,7 +315,11 @@ function renderShop() {
     const ownEl = document.createElement('small');
     ownEl.style.opacity = '0.75';
     ownEl.style.fontSize = '11px';
-    ownEl.textContent = `У вас: ${inventory[key] || 0} шт.`;
+    if (isUnlocked) {
+      ownEl.textContent = `У вас: ${inventory[key] || 0} шт. · Ур. ${crop.minLevel}+ · Рост: ${formatTime(crop.growTime)} · XP: +${crop.xpReward}`;
+    } else {
+      ownEl.textContent = `🔒 Доступно с уровня ${crop.minLevel} · Рост: ${formatTime(crop.growTime)} · XP: +${crop.xpReward}`;
+    }
     left.appendChild(nameEl);
     left.appendChild(ownEl);
     const right = document.createElement('div');
@@ -245,12 +343,10 @@ function renderShop() {
     const updateControls = () => {
       const totalPrice = qty * crop.price;
       qtyValue.textContent = String(qty);
-      buyBtn.textContent = `Купить за ${totalPrice}💰`;
-      minusBtn.disabled = qty <= 1;
-      // Небольшая защита: нельзя ставить qty > 999
-      plusBtn.disabled = qty >= 999;
-      // Если денег не хватает на текущее qty — кнопку покупки гасим
-      buyBtn.disabled = coins < totalPrice;
+      buyBtn.textContent = isUnlocked ? `Купить за ${totalPrice}💰` : `Нужен ур. ${crop.minLevel}`;
+      minusBtn.disabled = qty <= 1 || !isUnlocked;
+      plusBtn.disabled = qty >= 999 || !isUnlocked;
+      buyBtn.disabled = !isUnlocked || coins < totalPrice;
     };
     minusBtn.onclick = () => {
       if (qty > 1) {
@@ -265,6 +361,10 @@ function renderShop() {
       }
     };
     buyBtn.onclick = () => {
+      if (!isUnlocked) {
+        tg.showAlert(`Это семя откроется на уровне ${crop.minLevel}.`);
+        return;
+      }
       const totalPrice = qty * crop.price;
       if (coins < totalPrice) {
         tg.showAlert(`Не хватает монет! Нужно ${totalPrice}, у вас ${coins}.`);
@@ -275,10 +375,7 @@ function renderShop() {
       selectedCropKey = key;
       saveProgress();
       saveInventory();
-      tg.showAlert(
-        `Вы купили ${qty} шт. семян «${crop.name}». Теперь у вас ${inventory[key]} шт.`
-      );
-      // Перерисовываем магазин, чтобы обновились монеты/остатки
+      tg.showAlert(`Вы купили ${qty} шт. семян «${crop.name}». Теперь у вас ${inventory[key]} шт.`);
       renderShop();
     };
     right.appendChild(qtyControl);
@@ -345,6 +442,21 @@ function renderFarmerStats() {
     farmerPointsEl.textContent = `Очки развития: ${farmerPoints}`;
   }
 }
+function getCurrentFarmerLevel() {
+  return getFarmerLevelByPoints(farmerPoints);
+}
+function addFarmerPoints(pointsToAdd) {
+  const oldLevel = getCurrentFarmerLevel();
+  farmerPoints += pointsToAdd;
+  const newLevel = getCurrentFarmerLevel();
+  saveProgress();
+  renderFarmerStats();
+  return {
+    oldLevel,
+    newLevel,
+    leveledUp: newLevel > oldLevel
+  };
+}
 
 function renderField() {
   field.innerHTML = '';
@@ -374,11 +486,16 @@ function renderField() {
           tg.showAlert('Ещё рано — растение не выросло!');
           return;
         }
-        plots[i] = null;
-        coins += crop.reward;
-        saveProgress();
-        renderField();
-        tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
+plots[i] = null;
+coins += crop.reward;
+const levelResult = addFarmerPoints(crop.xpReward);
+saveProgress();
+renderField();
+let msg = `Ты собрал ${crop.name}! Получено монет: ${crop.reward}. Очки развития: +${crop.xpReward}.`;
+if (levelResult.leveledUp) {
+  msg += `\n🎉 Новый уровень фермера: ${levelResult.newLevel}!`;
+}
+tg.showAlert(msg);
       };
 
       // Подсветка готовой грядки
@@ -402,7 +519,11 @@ function renderField() {
       // Делаем обработчик клика асинхронным (async)
       plot.onclick = async () => {
         const crop = cropsConfig[selectedCropKey];
-        
+        const currentLevel = getCurrentFarmerLevel();
+if (currentLevel < crop.minLevel) {
+  tg.showAlert(`Для посадки ${crop.name} нужен уровень ${crop.minLevel}.`);
+  return;
+}
         // Проверяем: есть ли выбранные семена в инвентаре?
         if (inventory[selectedCropKey] > 0) {
           
@@ -621,7 +742,8 @@ if (harvestBtn) {
   harvestBtn.onclick = () => {
     let harvestedCount = 0;
     let totalReward = 0;
-
+let totalXp = 0;
+    
     plots.forEach((plotData, i) => {
       if (plotData) {
         const { cropKey, plantedAt } = plotData;
@@ -633,17 +755,23 @@ if (harvestBtn) {
           coins += crop.reward;
           totalReward += crop.reward;
           harvestedCount++;
+          totalXp += crop.xpReward;
         }
       }
     });
 
-    if (harvestedCount > 0) {
-      saveProgress();
-      renderField();
-      tg.showAlert(`Собрано ${harvestedCount} урожая. Получено монет: ${totalReward}.`);
-    } else {
-      tg.showAlert('Нет готового урожая для сбора.');
-    }
+if (harvestedCount > 0) {
+  const levelResult = addFarmerPoints(totalXp);
+  saveProgress();
+  renderField();
+  let msg = `Собрано ${harvestedCount} урожая. Получено монет: ${totalReward}. Очки развития: +${totalXp}.`;
+  if (levelResult.leveledUp) {
+    msg += `\n🎉 Новый уровень фермера: ${levelResult.newLevel}!`;
+  }
+  tg.showAlert(msg);
+} else {
+  tg.showAlert('Нет готового урожая для сбора.');
+}
   };
 }
 
