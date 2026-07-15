@@ -537,10 +537,120 @@
 #farmerLevel { color: #a8e6cf; }
 #farmerPoints { color: #d6ecff; }
 .header-stats .coins-display { color: #f1c40f; }
+    /* ===== LOADING SCREEN ===== */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.loading-screen.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.loading-scene {
+  width: min(92vw, 460px);
+  text-align: center;
+}
+.loading-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  margin-bottom: 16px;
+}
+.road-wrap {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+.road {
+  position: relative;
+  height: 110px;
+  background: linear-gradient(to bottom, #2e7d32 0%, #2e7d32 26%, #5d4037 26%, #5d4037 74%, #2e7d32 74%, #2e7d32 100%);
+}
+.road-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 200%;
+  height: 8px;
+  transform: translateY(-50%);
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 235, 59, 0.95) 0 22px,
+    transparent 22px 42px
+  );
+  animation: roadMove 0.7s linear infinite;
+}
+.tractor {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  font-size: 42px;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.45));
+  animation: tractorBounce 0.45s ease-in-out infinite;
+  z-index: 2;
+}
+.trees-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tree {
+  position: absolute;
+  right: -40px;
+  font-size: 26px;
+  opacity: 0.95;
+  animation: treeFly 2s linear infinite;
+}
+.tree.t1 { top: 10px; animation-delay: 0s; }
+.tree.t2 { top: 14px; animation-delay: 0.4s; }
+.tree.t3 { top: 72px; animation-delay: 0.8s; }
+.tree.t4 { top: 76px; animation-delay: 1.2s; }
+.tree.t5 { top: 44px; animation-delay: 1.6s; }
+@keyframes roadMove {
+  from { transform: translate(0, -50%); }
+  to   { transform: translate(-42px, -50%); }
+}
+@keyframes tractorBounce {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50%      { transform: translate(-50%, -50%) translateY(-2px); }
+}
+@keyframes treeFly {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-120vw); }
+}
   </style>
 </head>
 <body>
-
+<div id="loadingScreen" class="loading-screen">
+  <div class="loading-scene">
+    <div class="loading-title">Подготавливаем ферму...</div>
+    <div class="road-wrap">
+      <div class="road">
+        <div class="road-line"></div>
+        <div class="tractor">🚜</div>
+        <div class="trees-layer">
+          <span class="tree t1">🌳</span>
+          <span class="tree t2">🌳</span>
+          <span class="tree t3">🌳</span>
+          <span class="tree t4">🌳</span>
+          <span class="tree t5">🌳</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  
   <div class="game-container">
 <div class="header-bar">
 <span class="farm-title">🌾 Ферма</span>
