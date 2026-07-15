@@ -139,6 +139,8 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+// --- ОБНОВЛЕННЫЙ МАГАЗИН С ВЫБОРОМ КОЛИЧЕСТВА ---
+
 function renderShop() {
   shopContainer.innerHTML = '';
   for (const key in cropsConfig) {
@@ -149,29 +151,71 @@ function renderShop() {
     // Получаем текущее количество семян в рюкзаке
     const seedCount = inventory[key] || 0;
     
-    // Выводим название, иконку, сколько штук у нас есть и цену
+    // Пересобираем верстку: слева инфо, справа — выбор количества и кнопка купить
     item.innerHTML = `
-      <span class="shop-name">${crop.emoji} ${crop.name} <small style="opacity: 0.7; font-size: 11px;">(У вас: ${seedCount} шт.)</small></span>
-      <span class="shop-price">${crop.price}💰</span>
+      <div class="shop-info">
+        <span class="shop-name">${crop.emoji} ${crop.name}</span>
+        <small style="opacity: 0.7; font-size: 11px; color: #aaa;">У вас: ${seedCount} шт.</small>
+        <span class="shop-price" style="margin-top: 4px; display: block; font-weight: bold; color: #f1c40f;">${crop.price}💰 / шт.</span>
+      </div>
+      <div class="shop-actions">
+        <div class="quantity-controller">
+          <button class="qty-btn" onclick="changeQty('${key}', -1)">-</button>
+          <input type="number" class="qty-input" value="1" min="1" id="qty-${key}" onchange="validateQty(this)">
+          <button class="qty-btn" onclick="changeQty('${key}', 1)">+</button>
+        </div>
+        <button class="btn-buy" onclick="buySeeds('${key}')">Купить</button>
+      </div>
     `;
     
-    item.onclick = () => {
-      if (coins >= crop.price) {
-        coins -= crop.price; // Списываем монеты сразу!
-        inventory[key] = seedCount + 1; // Кладем 1 семечко в инвентарь
-        selectedCropKey = key; // Делаем это семечко активным для посадки
-        
-        saveProgress();
-        saveInventory(); // Сохраняем рюкзак
-        renderShop(); // Обновляем магазин, чтобы циферка "У вас: Х шт." изменилась
-        
-        tg.showAlert(`Вы купили семя: ${crop.name}. Теперь у вас их ${inventory[key]} шт. Переходим на поле.`);
-        showScreen('field-screen');
-        renderField();
-      } else {
-        tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
-      }
-    };
+    shopContainer.appendChild(item);
+  }
+}
+
+// Функция для изменения количества кнопками +/-
+function changeQty(cropKey, delta) {
+  const input = document.getElementById(`qty-${cropKey}`);
+  if (!input) return;
+  let val = parseInt(input.value) || 1;
+  val += delta;
+  if (val < 1) val = 1; // Защита: нельзя купить меньше 1 семечка
+  input.value = val;
+}
+
+// Валидация при ручном вводе количества в поле
+function validateQty(input) {
+  let val = parseInt(input.value);
+  if (isNaN(val) || val < 1) {
+    input.value = 1;
+  }
+}
+
+// Функция пакетной покупки семян
+function buySeeds(cropKey) {
+  const input = document.getElementById(`qty-${cropKey}`);
+  const quantity = input ? (parseInt(input.value) || 1) : 1;
+  const crop = cropsConfig[cropKey];
+  if (!crop) return;
+
+  const totalCost = crop.price * quantity;
+  const seedCount = inventory[cropKey] || 0;
+
+  if (coins >= totalCost) {
+    coins -= totalCost; // Списываем деньги за все семена разом!
+    inventory[cropKey] = seedCount + quantity; // Добавляем семена в инвентарь
+    selectedCropKey = cropKey; // Автоматически выбираем это семя для посадки
+    
+    saveProgress();
+    saveInventory(); // Сохраняем рюкзак
+    renderShop(); // Перерисовываем магазин, чтобы обновилось "У вас: Х шт."
+    
+    tg.showAlert(`Вы успешно купили семена: ${crop.name} (${quantity} шт.) за ${totalCost} 🪙! Переходим на поле.`);
+    showScreen('field-screen');
+    renderField();
+  } else {
+    tg.showAlert(`Не хватает монет! Нужно ${totalCost} 🪙 на покупку ${quantity} шт., у вас всего ${coins} 🪙.`);
+  }
+}
     shopContainer.appendChild(item);
   }
 }
