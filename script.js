@@ -836,24 +836,43 @@ renderInventory();
 renderFarmerStats();
 (function initLoadingScreen() {
   const loadingEl = document.getElementById('loadingScreen');
-  if (!loadingEl) return;
-  const appStartTs = Date.now();
-  const minDurationMs = 2200;
+  const progressFillEl = document.getElementById('loadingProgressFill');
+  const progressTextEl = document.getElementById('loadingProgressText');
+  if (!loadingEl || !progressFillEl || !progressTextEl) return;
+  let percent = 0;
+  let isPageLoaded = false;
   let hidden = false;
+  const renderProgress = () => {
+    progressFillEl.style.width = `${percent}%`;
+    progressTextEl.textContent = `${percent}%`;
+  };
   const hideLoader = () => {
     if (hidden) return;
     hidden = true;
     loadingEl.classList.add('is-hidden');
     setTimeout(() => {
-      if (loadingEl && loadingEl.parentNode) {
+      if (loadingEl.parentNode) {
         loadingEl.parentNode.removeChild(loadingEl);
       }
     }, 450);
   };
+  const timer = setInterval(() => {
+    if (!isPageLoaded) {
+      percent = Math.min(92, percent + 1);
+      renderProgress();
+      return;
+    }
+    percent = Math.min(100, percent + 4);
+    renderProgress();
+    if (percent >= 100) {
+      clearInterval(timer);
+      setTimeout(hideLoader, 200);
+    }
+  }, 35);
   window.addEventListener('load', () => {
-    const elapsed = Date.now() - appStartTs;
-    const waitMore = Math.max(0, minDurationMs - elapsed);
-    setTimeout(hideLoader, waitMore);
+    isPageLoaded = true;
   });
-  setTimeout(hideLoader, 7000);
+  setTimeout(() => {
+    isPageLoaded = true;
+  }, 7000);
 })();
