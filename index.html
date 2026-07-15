@@ -469,6 +469,59 @@
       from { opacity: 0; transform: translate(-50%, 10px); }
       to { opacity: 1; transform: translate(-50%, 0); }
     }
+    /* --- Кол-во семян в магазине (+ / счетчик / -) --- */
+.shop-item {
+  gap: 10px;
+}
+.shop-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.shop-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.qty-control {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+.qty-btn {
+  min-width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+.qty-value {
+  min-width: 32px;
+  text-align: center;
+  font-weight: bold;
+  color: #fff;
+}
+.buy-btn {
+  background: #2ecc71;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.buy-btn:disabled,
+.qty-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
   </style>
 </head>
 <body>
