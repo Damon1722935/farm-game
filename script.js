@@ -20,7 +20,7 @@ const cropsConfig = {
 };
 
 // Сброс данных при смене версии
-const currentVersion = 'v2.4';
+const currentVersion = 'v2.5';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
@@ -30,6 +30,7 @@ if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_guild_members');
   localStorage.removeItem('farm_guild_level');
   localStorage.removeItem('farm_guild_points');
+  localStorage.removeItem('farm_inventory');
   localStorage.setItem('farm_version', currentVersion);
   console.log('🧹 Данные сброшены под новую версию игры.');
 }
@@ -37,6 +38,12 @@ if (storedVersion !== currentVersion) {
 let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
 let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
 let selectedCropKey = 'carrot';
+// Инвентарь семян (по умолчанию у игрока 0 семян каждого типа)
+let inventory = JSON.parse(localStorage.getItem('farm_inventory')) || { carrot: 0, wheat: 0, strawberry: 0 };
+
+function saveInventory() {
+  localStorage.setItem('farm_inventory', JSON.stringify(inventory));
+}
 
 // Данные гильдии
 let guildName = localStorage.getItem('farm_guild_name') || null;
@@ -135,12 +142,27 @@ function renderShop() {
     const crop = cropsConfig[key];
     const item = document.createElement('div');
     item.className = 'shop-item';
-    item.innerHTML = `<span class="shop-name">${crop.name}</span><span class="shop-price">${crop.price}💰</span>`;
+    
+    // Получаем текущее количество семян в рюкзаке
+    const seedCount = inventory[key] || 0;
+    
+    // Выводим название, иконку, сколько штук у нас есть и цену
+    item.innerHTML = `
+      <span class="shop-name">${crop.emoji} ${crop.name} <small style="opacity: 0.7; font-size: 11px;">(У вас: ${seedCount} шт.)</small></span>
+      <span class="shop-price">${crop.price}💰</span>
+    `;
+    
     item.onclick = () => {
       if (coins >= crop.price) {
-        coins -= crop.price;
-        selectedCropKey = key;
-        tg.showAlert(`Вы выбрали: ${crop.name}. Теперь сажайте на поле.`);
+        coins -= crop.price; // Списываем монеты сразу!
+        inventory[key] = seedCount + 1; // Кладем 1 семечко в инвентарь
+        selectedCropKey = key; // Делаем это семечко активным для посадки
+        
+        saveProgress();
+        saveInventory(); // Сохраняем рюкзак
+        renderShop(); // Обновляем магазин, чтобы циферка "У вас: Х шт." изменилась
+        
+        tg.showAlert(`Вы купили семя: ${crop.name}. Теперь у вас их ${inventory[key]} шт. Переходим на поле.`);
         showScreen('field-screen');
         renderField();
       } else {
@@ -198,7 +220,7 @@ function renderField() {
       }
 
     } else {
-      // Пустая грядка — посадка
+// Пустая грядка — посадка
       plot.textContent = '🌱';
       plot.classList.remove('ready');
       plot.style.cursor = 'pointer';
@@ -206,14 +228,21 @@ function renderField() {
 
       plot.onclick = () => {
         const crop = cropsConfig[selectedCropKey];
-        if (coins >= crop.price) {
-          coins -= crop.price;
-          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() };
+        
+        // Проверяем: есть ли выбранные семена в инвентаре?
+        if (inventory[selectedCropKey] > 0) {
+          inventory[selectedCropKey]--; // Тратим 1 семечко из рюкзака
+          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() }; // Сажаем
+          
           saveProgress();
-          renderField();
-          tg.showAlert(`Ты посадил ${crop.name}!`);
+          saveInventory(); // Сохраняем рюкзак
+          renderField(); // Обновляем поле
+          tg.showAlert(`Ты посадил ${crop.name}! Осталось семян: ${inventory[selectedCropKey]} шт.`);
         } else {
-          tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у тебя ${coins}.`);
+          // Если семян нет — отправляем в магазин
+          tg.showAlert(`У вас нет семян ${crop.name}! Купите их сначала в магазине.`);
+          showScreen('shop-screen');
+          renderShop();
         }
       };
     }
