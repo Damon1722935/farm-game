@@ -20,7 +20,7 @@ const cropsConfig = {
 };
 
 // Сброс данных при смене версии
-const currentVersion = 'v2.2';
+const currentVersion = 'v2.3';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
@@ -31,7 +31,7 @@ if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_guild_level');
   localStorage.removeItem('farm_guild_points');
   localStorage.setItem('farm_version', currentVersion);
-  console.log('🧹 Данные сброшены под новую версию игры (гильдии сохранены в структуре).');
+  console.log('🧹 Данные сброшены под новую версию игры.');
 }
 
 let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
@@ -45,13 +45,33 @@ let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || [];
 let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
 let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
 
+// Никнейм игрока
+let currentNick = localStorage.getItem('farm_current_nick') || 'Игрок';
+
+function saveCurrentNick() {
+  localStorage.setItem('farm_current_nick', currentNick);
+}
+
+function saveProgress() {
+  localStorage.setItem('farm_coins', coins.toString());
+  localStorage.setItem('farm_plots', JSON.stringify(plots));
+}
+
+function saveGuild() {
+  localStorage.setItem('farm_guild_name', guildName);
+  localStorage.setItem('farm_guild_leader', guildLeader);
+  localStorage.setItem('farm_guild_members', JSON.stringify(guildMembers));
+  localStorage.setItem('farm_guild_level', guildLevel.toString());
+  localStorage.setItem('farm_guild_points', guildPoints.toString());
+}
+
 // Элементы DOM
 const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
 const fieldBtn = document.getElementById('fieldBtn');
 const shopBtn = document.getElementById('shopBtn');
 const guildBtn = document.getElementById('guildBtn');
-const harvestBtn = document.getElementById('harvestBtn');
+const harvestBtn = document.getElementById('harvestBtn'); // кнопка сбора
 
 const shopContainer = document.getElementById('shop');
 
@@ -67,23 +87,6 @@ const createGuildBtn = document.getElementById('create-guild-btn');
 const joinGuildBtn = document.getElementById('join-guild-btn');
 const leaveGuildBtn = document.getElementById('leave-guild-btn');
 const disbandGuildBtn = document.getElementById('disband-guild-btn');
-
-function saveProgress() {
-  localStorage.setItem('farm_coins', coins.toString());
-  localStorage.setItem('farm_plots', JSON.stringify(plots));
-}
-
-function saveGuild() {
-  localStorage.setItem('farm_guild_name', guildName);
-  localStorage.setItem('farm_guild_leader', guildLeader);
-  localStorage.setItem('farm_guild_members', JSON.stringify(guildMembers));
-  localStorage.setItem('farm_guild_level', guildLevel.toString());
-  localStorage.setItem('farm_guild_points', guildPoints.toString());
-}
-
-function saveCurrentNick() {
-  // Если понадобится никнейм игрока
-}
 
 function showScreen(screenId) {
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -130,7 +133,6 @@ function renderShop() {
   }
 }
 
-// --- ГЛАВНАЯ ОТРИСОВКА ПОЛЯ (грядок) ---
 function renderField() {
   field.innerHTML = '';
 
@@ -147,47 +149,13 @@ function renderField() {
       const timeLeft = getTimeLeft(plantedAt, crop.growTime);
       const isReady = timeLeft <= 0;
 
-      const timerEl = document.createElement('span');
-      timerEl.className = 'plot-timer';
-      timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
-      plot.appendChild(timerEl);
-
-      plot.onclick = () => {
-        if (!isReady) {
-          tg.showAlert('Ещё рано — растение не выросло!');
-          return;
-        }
-        plots[i] = null;
-        coins += crop.reward;
-        saveProgress();
-        renderField();
-        tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
-      };
-
-      function renderField() {
-  field.innerHTML = '';
-
-  plots.forEach((plotData, i) => {
-    const plot = document.createElement('div');
-    plot.className = 'plot';
-
-    if (plotData) {
-      // Тут уже что-то растёт
-      const { cropKey, plantedAt } = plotData;
-      const crop = cropsConfig[cropKey];
-
-      plot.textContent = crop.emoji;
-
-      const timeLeft = getTimeLeft(plantedAt, crop.growTime);
-      const isReady = timeLeft <= 0;
-
       // Таймер
       const timerEl = document.createElement('span');
       timerEl.className = 'plot-timer';
       timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
       plot.appendChild(timerEl);
 
-      // Логика клика по готовой грядке (поштучный сбор)
+      // Клик по готовой грядке — поштучный сбор
       plot.onclick = () => {
         if (!isReady) {
           tg.showAlert('Ещё рано — растение не выросло!');
@@ -200,7 +168,7 @@ function renderField() {
         tg.showAlert(`Ты собрал ${crop.name}! Получено монет: ${crop.reward}.`);
       };
 
-      // Подсветка и курсор для готовой грядки
+      // Подсветка готовой грядки
       if (isReady) {
         plot.classList.add('ready');
         plot.style.cursor = 'pointer';
@@ -212,9 +180,9 @@ function renderField() {
       }
 
     } else {
-      // Пустая грядка — можно сажать
+      // Пустая грядка — посадка
       plot.textContent = '🌱';
-      plot.classList.remove('ready'); // на пустой не должно быть свечения
+      plot.classList.remove('ready');
       plot.style.cursor = 'pointer';
       plot.style.opacity = '1';
 
@@ -237,16 +205,8 @@ function renderField() {
 
   coinsEl.textContent = coins;
 }
-      };
-    }
 
-    field.appendChild(plot);
-  });
-
-  coinsEl.textContent = coins;
-}
-// --- ОТРИСОВКА И ЛОГИКА ГИЛЬДИИ ---
-
+// --- Гильдия ---
 function renderGuildInfo() {
   if (guildName) {
     guildNameEl.textContent = guildName;
@@ -265,7 +225,6 @@ function renderGuildInfo() {
   }
 }
 
-// Создание гильдии
 createGuildBtn.onclick = () => {
   const name = prompt('Придумайте название гильдии (до 20 символов):');
   if (!name || name.trim() === '') return;
@@ -277,7 +236,7 @@ createGuildBtn.onclick = () => {
   }
 
   guildName = cleanName;
-  guildLeader = currentNick || 'Игрок';
+  guildLeader = currentNick;
   guildMembers = [guildLeader];
   guildLevel = 1;
   guildPoints = 0;
@@ -287,7 +246,6 @@ createGuildBtn.onclick = () => {
   tg.showAlert(`Гильдия "${guildName}" создана! Вы — её лидер.`);
 };
 
-// Вступление в гильдию (упрощённо: сразу вступает, без кода приглашения)
 joinGuildBtn.onclick = () => {
   const name = prompt('Введите название гильдии для вступления:');
   if (!name || name.trim() === '') return;
@@ -298,10 +256,9 @@ joinGuildBtn.onclick = () => {
     return;
   }
 
-  // В рамках этой версии: просто «вступаем» в указанную гильдию
   guildName = cleanName;
-  guildLeader = 'Лидер'; // условно
-  guildMembers = ['Лидер', currentNick || 'Игрок'];
+  guildLeader = 'Лидер';
+  guildMembers = ['Лидер', currentNick];
   guildLevel = 1;
   guildPoints = 0;
 
@@ -310,17 +267,16 @@ joinGuildBtn.onclick = () => {
   tg.showAlert(`Вы вступили в гильдию "${guildName}".`);
 };
 
-// Покинуть гильдию
 leaveGuildBtn.onclick = () => {
   if (!guildName) {
     tg.showAlert('Вы не состоите в гильдии.');
     return;
   }
 
-  const isLeader = (guildLeader === (currentNick || 'Игрок'));
+  const isLeader = (guildLeader === currentNick);
 
   if (isLeader && guildMembers.length > 1) {
-    tg.showAlert('Лидер не может покинуть гильдию, пока в ней есть другие участники. Распустите гильдию или передайте лидерство (в текущей версии — только распустить).');
+    tg.showAlert('Лидер не может покинуть гильдию, пока в ней есть другие участники. Распустите гильдию.');
     return;
   }
 
@@ -335,13 +291,12 @@ leaveGuildBtn.onclick = () => {
   tg.showAlert('Вы покинули гильдию.');
 };
 
-// Распустить гильдию
 disbandGuildBtn.onclick = () => {
   if (!guildName) {
     tg.showAlert('Нет гильдии для роспуска.');
     return;
   }
-  if (guildLeader !== (currentNick || 'Игрок')) {
+  if (guildLeader !== currentNick) {
     tg.showAlert('Только лидер может распустить гильдию.');
     return;
   }
@@ -358,6 +313,8 @@ disbandGuildBtn.onclick = () => {
   renderGuildInfo();
   tg.showAlert('Гильдия распущена.');
 };
+
+// Кнопка «Собрать урожай» — собрать всё готовое
 if (harvestBtn) {
   harvestBtn.onclick = () => {
     let harvestedCount = 0;
@@ -388,7 +345,7 @@ if (harvestBtn) {
   };
 }
 
-// Таймер обновления времени на грядках (каждую секунду)
+// Таймер обновления времени на грядках
 setInterval(() => {
   const plotsInDom = document.querySelectorAll('.plot');
   plotsInDom.forEach((el, idx) => {
@@ -400,9 +357,11 @@ setInterval(() => {
       if (timerEl) {
         timerEl.textContent = timeLeft <= 0 ? 'ГОТОВО' : formatTime(timeLeft);
         if (timeLeft <= 0) {
+          el.classList.add('ready');
           el.style.opacity = '1';
           el.style.cursor = 'pointer';
         } else {
+          el.classList.remove('ready');
           el.style.opacity = '0.85';
           el.style.cursor = 'not-allowed';
         }
