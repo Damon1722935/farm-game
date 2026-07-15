@@ -119,6 +119,7 @@ if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_guild_level');
   localStorage.removeItem('farm_guild_points');
   localStorage.removeItem('farm_inventory');
+  localStorage.removeItem('farm_farmer_points');
   localStorage.setItem('farm_version', currentVersion);
   console.log('🧹 Данные сброшены под новую версию игры.');
 }
@@ -134,7 +135,12 @@ for (const key in cropsConfig) {
   }
 }
 let farmerPoints = parseInt(localStorage.getItem('farm_farmer_points')) || 0;
-
+plots = (Array.isArray(plots) ? plots : Array(6).fill(null)).map((plot) => {
+  if (!plot) return null;
+  const hasValidCrop = typeof plot.cropKey === 'string' && !!cropsConfig[plot.cropKey];
+  const hasValidTime = typeof plot.plantedAt === 'number' && Number.isFinite(plot.plantedAt);
+  return hasValidCrop && hasValidTime ? plot : null;
+});
 function saveInventory() {
   localStorage.setItem('farm_inventory', JSON.stringify(inventory));
 }
@@ -236,13 +242,13 @@ if (mapBtn && mapDropdown) {
 }
 
 // Закрываем меню, если кликнуть в любую другую область экрана
-window.onclick = (event) => {
+window.addEventListener('click', (event) => {
   if (mapDropdown && mapDropdown.classList.contains('show')) {
     if (!event.target.matches('#mapBtn') && !event.target.closest('#mapBtn')) {
       mapDropdown.classList.remove('show');
     }
   }
-};
+});
 
 // Переходы по локациям карты
 if (goToFieldBtn) {
@@ -466,10 +472,15 @@ function renderField() {
     plot.className = 'plot';
 
     if (plotData) {
-      const { cropKey, plantedAt } = plotData;
-      const crop = cropsConfig[cropKey];
-
-      plot.textContent = crop.emoji;
+const { cropKey, plantedAt } = plotData;
+const crop = cropsConfig[cropKey];
+if (!crop) {
+  plots[i] = null;
+  saveProgress();
+  renderField();
+  return;
+}
+plot.textContent = crop.emoji;
 
       const timeLeft = getTimeLeft(plantedAt, crop.growTime);
       const isReady = timeLeft <= 0;
@@ -781,8 +792,13 @@ setInterval(() => {
   plotsInDom.forEach((el, idx) => {
     const data = plots[idx];
     if (data) {
-      const crop = cropsConfig[data.cropKey];
-      const timeLeft = getTimeLeft(data.plantedAt, crop.growTime);
+const crop = cropsConfig[data.cropKey];
+if (!crop) {
+  plots[idx] = null;
+  saveProgress();
+  return;
+}
+const timeLeft = getTimeLeft(data.plantedAt, crop.growTime);
       const timerEl = el.querySelector('.plot-timer');
       if (timerEl) {
         timerEl.textContent = timeLeft <= 0 ? 'ГОТОВО' : formatTime(timeLeft);
