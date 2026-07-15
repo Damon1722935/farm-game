@@ -135,12 +135,15 @@ for (const key in cropsConfig) {
   }
 }
 let farmerPoints = parseInt(localStorage.getItem('farm_farmer_points')) || 0;
+let activePlantAnimations = 0;
+
 plots = (Array.isArray(plots) ? plots : Array(6).fill(null)).map((plot) => {
   if (!plot) return null;
   const hasValidCrop = typeof plot.cropKey === 'string' && !!cropsConfig[plot.cropKey];
   const hasValidTime = typeof plot.plantedAt === 'number' && Number.isFinite(plot.plantedAt);
   return hasValidCrop && hasValidTime ? plot : null;
 });
+
 function saveInventory() {
   localStorage.setItem('farm_inventory', JSON.stringify(inventory));
 }
@@ -531,41 +534,47 @@ plot.onclick = () => {
       plot.style.opacity = '1';
 
       // Делаем обработчик клика асинхронным (async)
-      plot.onclick = async () => {
-        const crop = cropsConfig[selectedCropKey];
-        const currentLevel = getCurrentFarmerLevel();
-if (currentLevel < crop.minLevel) {
-  tg.showAlert(`Для посадки ${crop.name} нужен уровень ${crop.minLevel}.`);
-  return;
-}
-        // Проверяем: есть ли выбранные семена в инвентаре?
-        if (inventory[selectedCropKey] > 0) {
-          
-          // Блокируем повторные клики на время анимации
-          plot.onclick = null;
-          plot.style.cursor = 'wait';
-
-          // Списываем семечко из инвентаря ДО начала анимации, защищая от багов
-          inventory[selectedCropKey]--;
-          saveInventory();
-
-          // 1. Запускаем нашу красивую анимацию лопаты и полива!
-          await runPlantingAnimation(plot);
-
-          // 2. После того, как анимация полностью закончилась, фиксируем посадку
-          plots[i] = { cropKey: selectedCropKey, plantedAt: Date.now() }; // Сажаем
-          
-          saveProgress();
-          renderField(); // Перерисовываем поле, чтобы запустить таймер роста
-          
-          // Уведомление об успешной посадке удалено согласно договоренности!
-        } else {
-          // Если семян нет — отправляем в магазин
-          tg.showAlert(`У вас нет семян ${crop.name}! Купите их сначала в магазине.`);
-          showScreen('shop-screen');
-          renderShop();
-        }
-      };
+plot.onclick = async () => {
+  const plantingCropKey = selectedCropKey;
+  const crop = cropsConfig[plantingCropKey];
+  if (!crop) {
+    tg.showAlert('Ошибка: выбранная культура не найдена.');
+    return;
+  }
+  const currentLevel = getCurrentFarmerLevel();
+  if (currentLevel < crop.minLevel) {
+    tg.showAlert(`Для посадки ${crop.name} нужен уровень ${crop.minLevel}.`);
+    return;
+  }
+  if (inventory[plantingCropKey] > 0) {
+    // Блокируем повторный клик по этой же грядке
+    plot.onclick = null;
+    plot.style.cursor = 'wait';
+    // Списываем семечко сразу
+    inventory[plantingCropKey]--;
+    saveInventory();
+    // Отмечаем: началась ещё одна анимация
+    activePlantAnimations++;
+    try {
+      // Анимация посадки
+      await runPlantingAnimation(plot);
+      // Фиксируем посадку после анимации
+      plots[i] = { cropKey: plantingCropKey, plantedAt: Date.now() };
+      saveProgress();
+    } finally {
+      // Эта анимация завершилась
+      activePlantAnimations--;
+      // Перерисовываем поле только когда ВСЕ анимации закончились
+      if (activePlantAnimations === 0) {
+        renderField();
+      }
+    }
+  } else {
+    tg.showAlert(`У вас нет семян ${crop.name}! Купите их сначала в магазине.`);
+    showScreen('shop-screen');
+    renderShop();
+  }
+};
     }
 
     field.appendChild(plot);
