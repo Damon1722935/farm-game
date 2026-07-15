@@ -163,7 +163,9 @@ body {
       backdrop-filter: blur(5px);
 
       position: relative;
-      overflow: hidden;
+      overflow: visible;
+  /* Добавляем приоритет отображения при анимации */
+      z-index: 1;
     }
 
     /* Эффект при наведении или нажатии на грядку */
@@ -447,17 +449,20 @@ div:has(> .plot) {
 <script>
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-    async function runPlantingAnimation(plotElement) {
+async function runPlantingAnimation(plotElement) {
       // Блокируем клики по грядке на время анимации
       plotElement.style.pointerEvents = 'none';
+      
+      // Временно приподнимаем грядку по z-index, чтобы лопата не пряталась за соседними грядками
+      plotElement.style.zIndex = '50';
       
       // Временно очищаем грядку от старого содержимого
       const originalHTML = plotElement.innerHTML;
       plotElement.innerHTML = '';
 
-      // --- 1. ШАГ: ЛОПАТА ---
+      // --- 1. ШАГ: ЛОПАТА (теперь точно spade!) ---
       const shovel = document.createElement('img');
-      shovel.src = 'https://img.icons8.com/fluency/96/shovel.png';
+      shovel.src = 'https://img.icons8.com/fluency/96/spade.png';
       shovel.className = 'anim-tool shovel-dig';
       plotElement.appendChild(shovel);
 
@@ -489,28 +494,27 @@ div:has(> .plot) {
       const dripInterval = setInterval(() => {
         const drop = document.createElement('div');
         drop.className = 'water-drop';
-        // Капли летят из носика лейки
         drop.style.left = (35 + Math.random() * 20) + '%';
         drop.style.top = '15px';
         plotElement.appendChild(drop);
         
-        // Удаляем капли после падения
         setTimeout(() => drop.remove(), 500);
       }, 80);
 
-      await delay(1400); // Ждем пока шкала полностью заполнится
+      await delay(1400); // Ждем завершения полива
 
       // Выключаем дождь и плавно убираем шкалу и лейку
       clearInterval(dripInterval);
       bar.style.opacity = '0';
-      await delay(300); // Даем лейке улететь
+      await delay(300);
       
       wateringCan.remove();
       bar.remove();
 
-      // Возвращаем исходную верстку грядки и включаем клики обратно
+      // Возвращаем исходную верстку грядки, сбрасываем z-index и включаем клики обратно
       plotElement.innerHTML = originalHTML;
       plotElement.style.pointerEvents = 'auto';
+      plotElement.style.zIndex = '';
     }
   </script>
 
