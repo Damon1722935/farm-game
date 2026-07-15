@@ -202,40 +202,67 @@ function formatTime(seconds) {
 }
 
 function renderShop() {
-  shopContainer.innerHTML = '';
-  for (const key in cropsConfig) {
-    const crop = cropsConfig[key];
-    const item = document.createElement('div');
-    item.className = 'shop-item';
+    shopContainer.innerHTML = '';
     
-    // Получаем текущее количество семян в рюкзаке
-    const seedCount = inventory[key] || 0;
-    
-    // Выводим название, иконку, сколько штук у нас есть и цену
-    item.innerHTML = `
-      <span class="shop-name">${crop.emoji} ${crop.name} <small style="opacity: 0.7; font-size: 11px;">(У вас: ${seedCount} шт.)</small></span>
-      <span class="shop-price">${crop.price}💰</span>
-    `;
-    
-    item.onclick = () => {
-      if (coins >= crop.price) {
-        coins -= crop.price; // Списываем монеты сразу!
-        inventory[key] = seedCount + 1; // Кладем 1 семечко в инвентарь
-        selectedCropKey = key; // Делаем это семечко активным для посадки
+    for (const key in cropsConfig) {
+        const crop = cropsConfig[key];
+        const seedCount = inventory[key] || 0;
         
-        saveProgress();
-        saveInventory(); // Сохраняем рюкзак
-        renderShop(); // Обновляем магазин, чтобы циферка "У вас: Х шт." изменилась
+        // Инициализируем количество, если его еще нет
+        if (!shopQuantities[key]) shopQuantities[key] = 1;
         
-        tg.showAlert(`Вы купили семя: ${crop.name}. Теперь у вас их ${inventory[key]} шт. Переходим на поле.`);
-        showScreen('field-screen');
-        renderField();
-      } else {
-        tg.showAlert(`Не хватает монет! Нужно ${crop.price}, у вас ${coins}.`);
-      }
-    };
-    shopContainer.appendChild(item);
-  }
+        const quantity = shopQuantities[key];
+        const totalCost = quantity * crop.price;
+
+        const item = document.createElement('div');
+        item.className = 'shop-item';
+        
+        item.innerHTML = `
+            <div class="shop-row">
+                <span class="shop-name">${crop.emoji} ${crop.name} 
+                    <small style="opacity: 0.7; font-size: 11px;">(У вас: ${seedCount})</small>
+                </span>
+                <span class="shop-price">Цена: ${crop.price} 💰</span>
+            </div>
+            <div class="shop-row">
+                <div class="shop-controls">
+                    <button class="btn-qty btn-minus">-</button>
+                    <span style="font-size: 16px; font-weight: bold; min-width: 25px; text-align: center;">${quantity}</span>
+                    <button class="btn-qty btn-plus">+</button>
+                </div>
+                <button class="btn-buy">Купить за ${totalCost} 💰</button>
+            </div>
+        `;
+
+        // Обработчики событий
+        item.querySelector('.btn-minus').onclick = () => {
+            if (shopQuantities[key] > 1) {
+                shopQuantities[key]--;
+                renderShop(); // Перерисовываем, чтобы обновить цифры
+            }
+        };
+
+        item.querySelector('.btn-plus').onclick = () => {
+            shopQuantities[key]++;
+            renderShop();
+        };
+
+        item.querySelector('.btn-buy').onclick = () => {
+            if (coins >= totalCost) {
+                coins -= totalCost;
+                inventory[key] = seedCount + quantity;
+                
+                saveProgress();
+                renderShop(); 
+                
+                tg.showAlert(`Куплено ${quantity} шт. ${crop.name}`);
+            } else {
+                tg.showAlert(`Недостаточно монет!`);
+            }
+        };
+
+        shopContainer.appendChild(item);
+    }
 }
 
 function renderInventory() {
