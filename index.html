@@ -84,21 +84,40 @@ body {
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 
-    /* === СТИЛИ ИМЕННО ДЛЯ КНОПОК МЕНЮ (НАВИГАЦИИ) === */
+/* Настройки кнопок меню */
     .btn-group button {
-      flex: 1; /* Распределяет кнопки абсолютно поровну по ширине экрана */
+      flex: 1;
       background: rgba(255, 255, 255, 0.25) !important; /* Матовое стекло */
-      backdrop-filter: blur(5px); /* Эффект размытия за ними */
-      border: 1.5px solid rgba(255, 255, 255, 0.4) !important; /* Тонкая светлая рамка */
+      backdrop-filter: blur(5px);
+      border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
       border-radius: 12px;
-      padding: 10px 0;
-      font-size: 24px; /* Крупный размер эмодзи, чтобы было удобно тапать */
-      color: #000000 !important; /* Черный цвет (если где-то появится текст) */
+      padding: 6px 0; /* Чуть уменьшили отступы, чтобы иконкам было просторно */
+      cursor: pointer;
+      transition: all 0.2s ease;
       
       display: flex;
       justify-content: center;
       align-items: center;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Настройки для самих картинок-иконок */
+    .btn-icon {
+      width: 34px;      /* Идеальный размер для пальца на мобильном */
+      height: 34px;
+      object-fit: contain; /* Защищает картинку от искажения */
+      pointer-events: none; /* Чтобы клик регистрировался на кнопке, а не на картинке */
+      transition: transform 0.2s ease;
+    }
+
+    /* Приятный эффект увеличения иконки при нажатии на кнопку */
+    .btn-group button:active .btn-icon {
+      transform: scale(0.85); /* Иконка плавно сожмется вместе с кнопкой */
+    }
+
+    .btn-group button:active {
+      background: rgba(255, 255, 255, 0.45) !important;
+      transform: scale(0.95) !important;
     }
 
     /* Анимация при наведении на обычные кнопки */
