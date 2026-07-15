@@ -98,7 +98,8 @@ const guildBtn = document.getElementById('guildBtn');
 const harvestBtn = document.getElementById('harvestBtn'); // кнопка сбора
 
 const shopContainer = document.getElementById('shop');
-
+const inventoryBtn = document.getElementById('inventoryBtn');
+const inventoryContainer = document.getElementById('inventory');
 // Элементы гильдии
 const guildStatsContainer = document.getElementById('guild-stats'); // Находим сам блок статистики
 const guildNameEl = document.getElementById('guild-name');
@@ -122,6 +123,8 @@ function showScreen(screenId) {
 fieldBtn.onclick = () => showScreen('field-screen');
 shopBtn.onclick = () => { renderShop(); showScreen('shop-screen'); };
 guildBtn.onclick = () => { renderGuildInfo(); showScreen('guild-screen'); };
+
+inventoryBtn.onclick = () => { renderInventory(); showScreen('inventory-screen'); };
 
 function getTimeLeft(plantedAt, growTimeSeconds) {
   const now = Date.now();
@@ -170,6 +173,45 @@ function renderShop() {
       }
     };
     shopContainer.appendChild(item);
+  }
+}
+
+function renderInventory() {
+  inventoryContainer.innerHTML = ''; // Очищаем экран перед перерисовкой
+
+  for (const key in cropsConfig) {
+    const crop = cropsConfig[key];
+    const count = inventory[key] || 0; // Сколько семян этого типа у нас есть
+    
+    const item = document.createElement('div');
+    item.className = 'inventory-item';
+
+    // Если это семечко сейчас активно для посадки — подсветим золотой рамкой
+    const isSelected = (selectedCropKey === key);
+    if (isSelected) {
+      item.style.borderColor = '#f1c40f';
+      item.style.boxShadow = '0 0 8px rgba(241, 196, 15, 0.3)';
+    }
+
+    // Содержимое карточки семени
+    item.innerHTML = `
+      <span class="inventory-name">
+        ${crop.emoji} ${crop.name} 
+        ${isSelected ? '<small style="color: #f1c40f; margin-left: 5px;">(Выбрано)</small>' : ''}
+      </span>
+      <span class="inventory-count">${count} шт.</span>
+    `;
+
+    // При клике на карточку — выбираем семя активным и отправляем игрока на поле
+    item.onclick = () => {
+      selectedCropKey = key;
+      tg.showAlert(`Вы выбрали для посадки: ${crop.name}`);
+      renderInventory(); // Перерисовываем инвентарь (чтобы рамка обновилась)
+      showScreen('field-screen'); // Перекидываем на поле
+      renderField(); // Обновляем поле
+    };
+
+    inventoryContainer.appendChild(item);
   }
 }
 
@@ -489,3 +531,4 @@ setInterval(() => {
 renderField();
 renderShop();
 renderGuildInfo();
+renderInventory();
