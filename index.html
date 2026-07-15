@@ -60,16 +60,19 @@ body {
       color: #f1c40f;
     }
 
-    .btn-group {
+.btn-group {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
+      /* УБРАЛИ flex-wrap: wrap, чтобы кнопки гарантированно выстроились в ОДНУ строчку */
+      justify-content: space-between; 
+      gap: 8px; /* Сделали зазор чуть меньше для аккуратности */
       margin-bottom: 15px;
-      padding: 0 5px;
       margin-top: 15px;
+      padding: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
+    /* Базовый стиль для ВСЕХ кнопок (например, для "Собрать урожай") */
     button {
       padding: 12px 18px;
       border: none;
@@ -81,11 +84,35 @@ body {
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
 
+    /* === СТИЛИ ИМЕННО ДЛЯ КНОПОК МЕНЮ (НАВИГАЦИИ) === */
+    .btn-group button {
+      flex: 1; /* Распределяет кнопки абсолютно поровну по ширине экрана */
+      background: rgba(255, 255, 255, 0.25) !important; /* Матовое стекло */
+      backdrop-filter: blur(5px); /* Эффект размытия за ними */
+      border: 1.5px solid rgba(255, 255, 255, 0.4) !important; /* Тонкая светлая рамка */
+      border-radius: 12px;
+      padding: 10px 0;
+      font-size: 24px; /* Крупный размер эмодзи, чтобы было удобно тапать */
+      color: #000000 !important; /* Черный цвет (если где-то появится текст) */
+      
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Анимация при наведении на обычные кнопки */
     button:hover {
       opacity: 0.95;
       transform: scale(1.02);
       filter: brightness(1.05);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    /* Красивый интерактивный отклик при нажатии на стеклянные кнопки */
+    .btn-group button:active, .btn-group button:hover {
+      background: rgba(255, 255, 255, 0.45) !important; /* Становятся чуть ярче при клике */
+      transform: scale(0.95) !important; /* Приятный эффект "пружины" под пальцем */
     }
 
     .btn-plant { background: #2ecc71; color: white; }
@@ -263,11 +290,11 @@ div:has(> .plot) {
       <span class="coins-display">Монеты: <span id="coins">100</span></span>
     </div>
 
-    <div class="btn-group">
-      <button id="fieldBtn">🌾 Поле</button>
-      <button id="shopBtn">🛍 Магазин</button>
-      <button id="inventoryBtn">🎒 Инвентарь</button>
-      <button id="guildBtn">🏰 Гильдия</button>
+<div class="btn-group">
+      <button id="fieldBtn">🌾</button>
+      <button id="shopBtn">🛍</button>
+      <button id="inventoryBtn">🎒</button>
+      <button id="guildBtn">🏰</button>
     </div>
 
     <!-- ЭКРАН: Поле -->
