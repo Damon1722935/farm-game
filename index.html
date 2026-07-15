@@ -91,14 +91,16 @@
       margin: 15px 0;
     }
 
-    .plot {
-      height: 60px;
+.plot {
+      height: 80px; /* Увеличили высоту грядки с 60px до 80px, чтобы было больше места */
       border: 2px solid rgba(255,255,255,0.2);
       border-radius: 8px;
       display: flex;
       justify-content: center;
-      align-items: center;
-      font-size: 24px;
+      align-items: flex-start; /* Сдвинули эмодзи чуть-чуть вверх, чтобы таймер снизу его не перекрывал */
+      padding-top: 10px; /* Добавили аккуратный отступ сверху */
+      box-sizing: border-box; /* Чтобы отступы не ломали размеры грядки */
+      font-size: 36px; /* Увеличили размер значка урожая с 24px до 36px! */
       cursor: pointer;
       transition: transform 0.1s, filter 0.2s;
 
