@@ -492,22 +492,25 @@ plot.textContent = crop.emoji;
       plot.appendChild(timerEl);
 
       // Клик по готовой грядке — поштучный сбор
-      plot.onclick = () => {
-        if (!isReady) {
-          tg.showAlert('Ещё рано — растение не выросло!');
-          return;
-        }
-plots[i] = null;
-coins += crop.reward;
-const levelResult = addFarmerPoints(crop.xpReward);
-saveProgress();
-renderField();
-let msg = `Ты собрал ${crop.name}! Получено монет: ${crop.reward}. Очки развития: +${crop.xpReward}.`;
-if (levelResult.leveledUp) {
-  msg += `\n🎉 Новый уровень фермера: ${levelResult.newLevel}!`;
-}
-tg.showAlert(msg);
-      };
+plot.onclick = () => {
+  const currentPlot = plots[i];
+  if (!currentPlot) return;
+  const freshTimeLeft = getTimeLeft(currentPlot.plantedAt, crop.growTime);
+  if (freshTimeLeft > 0) {
+    tg.showAlert('Ещё рано — растение не выросло!');
+    return;
+  }
+  plots[i] = null;
+  coins += crop.reward;
+  const levelResult = addFarmerPoints(crop.xpReward);
+  saveProgress();
+  renderField();
+  let msg = `Ты собрал ${crop.name}! Получено монет: ${crop.reward}. Очки развития: +${crop.xpReward}.`;
+  if (levelResult.leveledUp) {
+    msg += `\n🎉 Новый уровень фермера: ${levelResult.newLevel}!`;
+  }
+  tg.showAlert(msg);
+};
 
       // Подсветка готовой грядки
       if (isReady) {
