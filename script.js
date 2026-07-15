@@ -44,6 +44,13 @@ let guildLeader = localStorage.getItem('farm_guild_leader') || null;
 let guildMembers = JSON.parse(localStorage.getItem('farm_guild_members')) || [];
 let guildLevel = parseInt(localStorage.getItem('farm_guild_level')) || 0;
 let guildPoints = parseInt(localStorage.getItem('farm_guild_points')) || 0;
+// --- ОБЩАЯ БАЗА ВСЕХ ГИЛЬДИЙ (пока храним локально для тестов) ---
+let allGuilds = JSON.parse(localStorage.getItem('farm_all_guilds')) || [];
+
+function saveAllGuilds() {
+  localStorage.setItem('farm_all_guilds', JSON.stringify(allGuilds));
+}
+// ------------------------------------------------------------------
 
 // Никнейм игрока (автоматически берем из Telegram, если он доступен)
 let currentNick = localStorage.getItem('farm_current_nick');
@@ -275,15 +282,33 @@ createGuildBtn.onclick = () => {
     return;
   }
 
+  // ПРОВЕРКА: Существует ли уже гильдия с таким именем?
+  const existingGuild = allGuilds.find(g => g.name.toLowerCase() === cleanName.toLowerCase());
+  if (existingGuild) {
+    tg.showAlert('Гильдия с таким названием уже существует! Придумайте другое.');
+    return;
+  }
+
+  // Задаем данные игроку
   guildName = cleanName;
   guildLeader = currentNick;
   guildMembers = [guildLeader];
   guildLevel = 1;
   guildPoints = 0;
 
+  // Добавляем новую гильдию в общую "базу данных"
+  allGuilds.push({
+    name: guildName,
+    leader: guildLeader,
+    members: guildMembers,
+    level: guildLevel,
+    points: guildPoints
+  });
+
   saveGuild();
+  saveAllGuilds(); // Сохраняем общую базу
   renderGuildInfo();
-  tg.showAlert(`Гильдия "${guildName}" создана! Вы — её лидер.`);
+  tg.showAlert(`Гильдия "${guildName}" создана! Вы — её лидер.`);
 };
 
 joinGuildBtn.onclick = () => {
@@ -296,30 +321,49 @@ joinGuildBtn.onclick = () => {
     return;
   }
 
-  guildName = cleanName;
-  guildLeader = 'Лидер';
-  guildMembers = ['Лидер', currentNick];
-  guildLevel = 1;
-  guildPoints = 0;
+  // ИЩЕМ гильдию в нашей "базе данных"
+  const foundGuild = allGuilds.find(g => g.name.toLowerCase() === cleanName.toLowerCase());
 
-  saveGuild();
-  renderGuildInfo();
-  tg.showAlert(`Вы вступили в гильдию "${guildName}".`);
-};
-
-leaveGuildBtn.onclick = () => {
-  if (!guildName) {
-    tg.showAlert('Вы не состоите в гильдии.');
+  if (!foundGuild) {
+    tg.showAlert('Такой гильдии не существует! Проверьте правильность названия.');
     return;
   }
 
-  const isLeader = (guildLeader === currentNick);
+  // Если гильдия найдена — копируем её данные игроку
+  guildName = foundGuild.name;
+  guildLeader = foundGuild.leader;
+  
+  // Если нашего игрока еще нет в списке участников, добавляем его туда
+  if (!foundGuild.members.includes(currentNick)) {
+    foundGuild.members.push(currentNick);
+  }
+  guildMembers = foundGuild.members;
+  guildLevel = foundGuild.level;
+  guildPoints = foundGuild.points;
 
+  saveGuild();
+  saveAllGuilds(); // Сохраняем обновленный состав в базу
+  renderGuildInfo();
+  tg.showAlert(`Вы успешно вступили в гильдию "${guildName}".`);
+};
+
+leaveGuildBtn.onclick = () => {
+  if (!guildName) return;
+
+  const isLeader = (guildLeader === currentNick);
   if (isLeader && guildMembers.length > 1) {
     tg.showAlert('Лидер не может покинуть гильдию, пока в ней есть другие участники. Распустите гильдию.');
     return;
   }
 
+  // Удаляем игрока из списка участников в общей "базе данных"
+  const guildIndex = allGuilds.findIndex(g => g.name === guildName);
+  if (guildIndex !== -1) {
+    allGuilds[guildIndex].members = allGuilds[guildIndex].members.filter(m => m !== currentNick);
+    saveAllGuilds();
+  }
+
+  // Очищаем данные у самого игрока
   guildName = null;
   guildLeader = null;
   guildMembers = [];
@@ -332,17 +376,19 @@ leaveGuildBtn.onclick = () => {
 };
 
 disbandGuildBtn.onclick = () => {
-  if (!guildName) {
-    tg.showAlert('Нет гильдии для роспуска.');
-    return;
-  }
+  if (!guildName) return;
   if (guildLeader !== currentNick) {
     tg.showAlert('Только лидер может распустить гильдию.');
     return;
   }
 
-  if (!confirm('Вы уверены? Гильдия будет распущена, все участники выйдут.')) return;
+  if (!confirm('Вы уверены? Гильдия будет распущена.')) return;
 
+  // Удаляем саму гильдию из общей "базы данных"
+  allGuilds = allGuilds.filter(g => g.name !== guildName);
+  saveAllGuilds();
+
+  // Очищаем данные у игрока
   guildName = null;
   guildLeader = null;
   guildMembers = [];
