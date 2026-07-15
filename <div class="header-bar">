@@ -522,28 +522,25 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-    .header-stats {
+.header-stats {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-end;   /* прижимаем всё вправо */
   gap: 4px;
 }
-.farmer-stats {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  font-size: 12px;
-  line-height: 1.2;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-#farmerLevel {
-  color: #a8e6cf;
+/* Общий стиль для всех 3 строк в правой колонке */
+.header-stats .stat-line {
+  font-size: 14px;         /* одинаковый размер */
   font-weight: 700;
-}
-#farmerPoints {
+  line-height: 1.2;
+  text-align: right;
   color: #ffffff;
-  opacity: 0.95;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
 }
+/* Цветовые акценты */
+#farmerLevel { color: #a8e6cf; }
+#farmerPoints { color: #d6ecff; }
+.header-stats .coins-display { color: #f1c40f; }
   </style>
 </head>
 <body>
@@ -552,11 +549,9 @@
 <div class="header-bar">
   <span>🌾 Ферма</span>
   <div class="header-stats">
-    <div class="farmer-stats">
-      <span id="farmerLevel">Уровень фермера: 1</span>
-      <span id="farmerPoints">Очки развития: 0</span>
-    </div>
-    <span class="coins-display">Монеты: <span id="coins">100</span></span>
+    <span id="farmerLevel" class="stat-line">Уровень фермера: 1</span>
+    <span id="farmerPoints" class="stat-line">Очки развития: 0</span>
+    <span class="coins-display stat-line">Монеты: <span id="coins">100</span></span>
   </div>
 </div>
 
