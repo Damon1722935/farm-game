@@ -230,12 +230,12 @@
     }
 
     /* --- СТИЛЬ НАЗВАНИЯ ФЕРМЫ (крупно и белым) --- */
-    .header-bar span:first-child {
-      font-size: 1.8rem;
-      color: #ffffff;
-      font-weight: 700;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    }
+.header-bar .farm-title {
+  font-size: 1.8rem;
+  color: #ffffff;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
 
     .coins-display {
       font-size: 1.2rem;
@@ -530,7 +530,7 @@
 }
 /* Общий стиль для всех 3 строк в правой колонке */
 .header-stats .stat-line {
-  font-size: 14px;         /* одинаковый размер */
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
   text-align: right;
@@ -547,7 +547,7 @@
 
   <div class="game-container">
 <div class="header-bar">
-  <span>🌾 Ферма</span>
+<span class="farm-title">🌾 Ферма</span>
   <div class="header-stats">
     <span id="farmerLevel" class="stat-line">Уровень фермера: 1</span>
     <span id="farmerPoints" class="stat-line">Очки развития: 0</span>
