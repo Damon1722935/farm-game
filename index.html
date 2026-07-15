@@ -407,6 +407,90 @@ div:has(> .plot) {
     transform: scale(0.85);
     opacity: 0.7;
 }
+    /* --- НОВЫЕ СТИЛИ ДЛЯ ВЫБОРА КОЛИЧЕСТВА В МАГАЗИНЕ --- */
+    .shop-item {
+      background: rgba(255,255,255,0.1);
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: default !important; /* Убираем курсор руки со всей карточки */
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(5px);
+    }
+    .shop-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .shop-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+    .quantity-controller {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .qty-btn {
+      background: rgba(255, 255, 255, 0.2) !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+      color: white !important;
+      border-radius: 6px;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 !important;
+      box-shadow: none !important;
+      transition: background-color 0.1s, transform 0.1s;
+    }
+    .qty-btn:active {
+      transform: scale(0.9);
+      background: rgba(255, 255, 255, 0.4) !important;
+    }
+    .qty-input {
+      width: 40px;
+      height: 28px;
+      background: rgba(0, 0, 0, 0.5) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      color: white !important;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      outline: none;
+    }
+    /* Скрываем дефолтные стрелочки инпута */
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .btn-buy {
+      background: #2ecc71 !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 6px 14px !important;
+      font-size: 13px !important;
+      font-weight: bold !important;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+      transition: all 0.1s ease;
+    }
+    .btn-buy:active {
+      transform: scale(0.95) !important;
+      background: #27ae60 !important;
+    }
   </style>
 </head>
 <body>
