@@ -782,9 +782,9 @@ background-image:
 .loading-tractor {
   position: absolute;
   left: 50%;
-  bottom: 14%;                 /* Трактор внизу экрана */
+  top: 46%;                /* центр по вертикали */
   width: clamp(120px, 26vw, 210px);
-  transform: translateX(-50%) scale(0.95);
+  transform: translate(-50%, -50%) scale(0.95);
   transform-origin: center center;
   filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45));
   animation: tractorRideToViewer 1.35s ease-in-out infinite;
@@ -797,12 +797,12 @@ background-image:
 .tractor-dust {
   position: absolute;
   left: 50%;
-  bottom: 13.5%; /* чуть ниже трактора */
+  top: 52%;
   width: clamp(120px, 26vw, 210px);
   height: 52px;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   pointer-events: none;
-  z-index: 2; /* ниже трактора, выше фона */
+  z-index: 2;
 }
 .tractor-dust span {
   position: absolute;
@@ -838,19 +838,19 @@ background-image:
 }
 @keyframes tractorRideToViewer {
   0% {
-    transform: translateX(-50%) translateY(8px) scale(0.92);
+    transform: translate(-50%, -50%) translateY(8px) scale(0.92);
   }
   50% {
-    transform: translateX(-50%) translateY(-6px) scale(1.02);
+    transform: translate(-50%, -50%) translateY(-6px) scale(1.02);
   }
   100% {
-    transform: translateX(-50%) translateY(8px) scale(0.92);
+    transform: translate(-50%, -50%) translateY(8px) scale(0.92);
   }
 }
 .loading-progress-wrap {
   position: absolute;
   left: 50%;
-  bottom: 5%;
+  top: 62%;               /* чуть ниже трактора */
   transform: translateX(-50%);
   width: min(88vw, 460px);
 }
