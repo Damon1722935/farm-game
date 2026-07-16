@@ -229,9 +229,14 @@ const leaveGuildBtn = document.getElementById('leave-guild-btn');
 const disbandGuildBtn = document.getElementById('disband-guild-btn');
 
 function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  const screen = document.getElementById(screenId);
-  if (screen) screen.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById(screenId);
+  if (target) target.classList.add('active');
+
+  // ЕСЛИ ОТКРЫЛИ МАГАЗИН — СБРАСЫВАЕМ ЕГО НА ВЫБОР РАЗДЕЛОВ
+  if (screenId === 'shop-screen') {
+    selectShopCategory('categories');
+  }
 }
 
 // === ЛОГИКА ВЫПАДАЮЩЕГО СПИСКА КАРТЫ ===
@@ -876,3 +881,62 @@ renderFarmerStats();
     isPageLoaded = true;
   }, 7000);
 })();
+
+// ФУНКЦИЯ ДЛЯ ПЕРЕКЛЮЧЕНИЯ РАЗДЕЛОВ В МАГАЗИНЕ
+function selectShopCategory(category) {
+  const categoriesEl = document.getElementById('shop-categories');
+  const shopEl = document.getElementById('shop');
+  const backBtn = document.getElementById('shop-back-btn');
+  const titleEl = document.getElementById('shop-title');
+
+  if (!categoriesEl || !shopEl || !backBtn || !titleEl) return;
+
+  if (category === 'categories') {
+    // 1. ПОКАЗЫВАЕМ ВЫБОР КАТЕГОРИЙ
+    categoriesEl.style.display = 'flex';
+    shopEl.style.display = 'none';
+    backBtn.style.display = 'none';
+    titleEl.textContent = 'Магазин';
+  } else {
+    // 2. ПОКАЗЫВАЕМ ПРИЛАВОК И КНОПКУ "НАЗАД"
+    categoriesEl.style.display = 'none';
+    backBtn.style.display = 'block';
+
+    if (category === 'field') {
+      titleEl.textContent = 'Магазин: Семена';
+      shopEl.style.display = 'grid'; // Оставляем сетку для карточек семян
+      
+      // Запускаем твой стандартный рендер семян, который уже написан в script.js
+      renderShop(); 
+    } 
+    else if (category === 'garden') {
+      titleEl.textContent = 'Магазин: Сад';
+      shopEl.style.display = 'block'; // Меняем на block для красивого текста
+      
+      // Выводим временную заглушку для Сада
+      shopEl.innerHTML = `
+        <div class="shop-empty-message">
+          🌳 <br><br>
+          <strong>Раздел «Сад» пока закрыт!</strong><br>
+          Здесь будут продаваться саженцы яблонь, груш и других деревьев.
+        </div>
+      `;
+    } 
+    else if (category === 'pen') {
+      titleEl.textContent = 'Магазин: Загон';
+      shopEl.style.display = 'block';
+      
+      // Выводим временную заглушку для Загона
+      shopEl.innerHTML = `
+        <div class="shop-empty-message">
+          🐄 <br><br>
+          <strong>Раздел «Загон» в разработке!</strong><br>
+          Здесь вы сможете купить коров, кур и овечек для вашей фермы.
+        </div>
+      `;
+    }
+  }
+}
+
+// Обязательно делаем функцию глобальной, чтобы HTML-кнопки (onclick) её видели!
+window.selectShopCategory = selectShopCategory;
