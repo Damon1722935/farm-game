@@ -892,6 +892,74 @@ body {
 .category-desc {
   color: #e8e8e8;
 }
+    /* ===== Выпадающее меню справа ===== */
+.quick-menu-wrap {
+  position: fixed;
+  top: 84px;
+  right: 16px;
+  z-index: 1200;
+}
+.quick-menu-toggle {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.45) !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25) !important;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.quick-menu-toggle.is-open {
+  transform: rotate(180deg);
+}
+.quick-menu-content {
+  top: 56px;
+  left: auto;
+  right: 0;
+  transform: none;
+  min-width: 180px;
+  margin-top: 0;
+}
+.quick-menu-content button {
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  background: transparent !important;
+  color: #fff;
+  border: none !important;
+  box-shadow: none !important;
+}
+.quick-menu-content button:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  transform: none !important;
+}
+    .quick-submenu {
+  display: none;
+  margin: 4px 8px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  overflow: hidden;
+}
+.quick-submenu.show {
+  display: block;
+}
+.quick-submenu button {
+  padding-left: 16px;
+  font-size: 14px;
+}
+.map-menu-btn.is-open {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
   </style>
 </head>
 <body>
@@ -935,17 +1003,22 @@ body {
   </div>
 </div>
 
-    <div class="btn-group">
-      <div class="dropdown">
-        <button id="mapBtn">
-          <img src="https://img.icons8.com/fluency/96/map.png" alt="Карта" class="btn-icon">
-        </button>
-        <div id="mapDropdown" class="dropdown-content">
-          <button id="goToFieldBtn">Поле 🌱</button>
-          <button id="goToGardenBtn">Сад 🌳</button>
-          <button id="goToPenBtn">Загон 🐄</button>
-        </div>
-      </div>
+<div class="quick-menu-wrap">
+  <button id="mapBtn" class="quick-menu-toggle" aria-label="Открыть меню" title="Меню">
+    ▾
+  </button>
+<div id="mapDropdown" class="dropdown-content quick-menu-content">
+  <button id="mapMenuBtn" class="map-menu-btn">Карта 🗺️ ▸</button>
+  <div id="mapSubmenu" class="quick-submenu">
+    <button id="goToFieldBtn">Поле 🌱</button>
+    <button id="goToGardenBtn">Сад 🌳</button>
+    <button id="goToPenBtn">Загон 🐄</button>
+  </div>
+  <button id="shopBtn">Магазин 🛒</button>
+  <button id="inventoryBtn">Инвентарь 🎒</button>
+  <button id="guildBtn">Гильдия 🏰</button>
+</div>
+</div>
 
       <button id="shopBtn">
         <img src="https://img.icons8.com/fluency/96/shop.png" alt="Магазин" class="btn-icon">
