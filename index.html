@@ -157,35 +157,43 @@ background-image:
     .btn-harvest { background: #f39c12; color: white; }
     .btn-close { background: #95a5a6; color: white; }
 
-    #field {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 15px 0;
-    }
+#field {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 15px 0;
+  margin-top: 220px !important; /* опустили ниже */
+}
 
-    .plot {
-      height: 65px; /* Уменьшили высоту с 80px до 65px для компактности */
-      border: 1.5px solid rgba(255, 255, 255, 0.4) !important; 
-      border-radius: 10px; /* Чуть уменьшили скругление углов под новый размер */
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 6px; /* Аккуратный отступ сверху */
-      box-sizing: border-box;
-      font-size: 28px; /* Уменьшили размер эмодзи с 36px до 28px, чтобы всё смотрелось гармонично */
-      cursor: pointer;
-      transition: transform 0.1s, filter 0.2s, background-color 0.2s;
-
-      background-color: rgba(255, 255, 255, 0.15) !important;
-      background-image: none !important;
-      backdrop-filter: blur(5px);
-
-      position: relative;
-      overflow: visible;
-      /* Добавляем приоритет отображения при анимации */
-      z-index: 1;
-    }
+.plot {
+  position: relative;
+  height: 82px;
+  border: none !important;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10px;
+  box-sizing: border-box;
+  font-size: 26px;
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.1s;
+  background: transparent !important;
+  overflow: visible;
+  z-index: 1;
+}
+.plot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('img/kucha.png') center bottom / contain no-repeat;
+  z-index: 0;
+  pointer-events: none;
+}
+.plot > * {
+  position: relative;
+  z-index: 2;
+}
 
     /* Эффект при наведении или нажатии на грядку */
     .plot:hover {
@@ -994,8 +1002,7 @@ background-image:
   cursor: pointer;
   z-index: 5;
   box-shadow: 0 8px 18px rgba(0,0,0,0.35);
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
-  animation: mapPulse 1.8s ease-in-out infinite;
+  transition: box-shadow 0.2s ease;
 }
 .map-location-btn img {
   width: 74px;
@@ -1021,12 +1028,9 @@ background-image:
   box-shadow: 0 10px 22px rgba(0,0,0,0.45);
 }
 .map-location-btn:active {
-  transform: translate(-50%, -50%) scale(0.94);
+  transform: translate(-50%, -50%);
 }
-@keyframes mapPulse {
-  0%, 100% { box-shadow: 0 8px 18px rgba(0,0,0,0.35), 0 0 0 0 rgba(255,255,255,0.25); }
-  50% { box-shadow: 0 10px 22px rgba(0,0,0,0.45), 0 0 0 8px rgba(255,255,255,0.06); }
-}
+
 /* Позиции на карте — подправишь при желании */
 .loc-field { left: 22%; top: 68%; }
 .loc-garden { left: 72%; top: 26%; }
