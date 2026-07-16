@@ -124,7 +124,7 @@ const farmerLevelThresholds = [0, 300, 700, 1500, 3000];
 const PLOTS_COUNT = 8;
 
 // Сброс данных при смене версии
-const currentVersion = 'v2.7';
+const currentVersion = 'v2.8';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
