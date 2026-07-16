@@ -960,66 +960,6 @@ body {
 .map-menu-btn.is-open {
   background: rgba(255, 255, 255, 0.18) !important;
 }
-    .quick-fab {
-  position: fixed;
-  top: 86px;
-  right: 14px;
-  z-index: 1300;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-.quick-menu-toggle {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,0.45) !important;
-  background: rgba(255,255,255,0.22) !important;
-  color: #fff;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.25) !important;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-.quick-menu-toggle.open {
-  transform: rotate(90deg);
-}
-/* ВАЖНО: без фона/подложки */
-.quick-icons {
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-}
-.quick-icons.show {
-  display: flex;
-}
-/* Иконки как раньше */
-.quick-icons > button,
-.quick-icons .dropdown > button {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.18) !important;
-  border: 1.5px solid rgba(255,255,255,0.35) !important;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 !important;
-}
-.quick-icons .btn-icon {
-  width: 30px;
-  height: 30px;
-}
   </style>
 </head>
 <body>
@@ -1062,30 +1002,27 @@ body {
     <span class="coins-display stat-line">Монеты: <span id="coins">100</span></span>
   </div>
 </div>
-
-<div class="quick-fab" id="quickFab">
-  <button id="quickMenuToggle" class="quick-menu-toggle" aria-label="Меню" title="Меню">▸</button>
-  <div id="quickIcons" class="quick-icons">
-    <div class="dropdown">
-      <button id="mapBtn">
-        <img src="https://img.icons8.com/fluency/96/map.png" alt="Карта" class="btn-icon">
-      </button>
-      <div id="mapDropdown" class="dropdown-content">
-        <button id="goToFieldBtn">Поле 🌱</button>
-        <button id="goToGardenBtn">Сад 🌳</button>
-        <button id="goToPenBtn">Загон 🐄</button>
-      </div>
+    
+<div class="btn-group">
+  <div class="dropdown">
+    <button id="mapBtn">
+      <img src="https://img.icons8.com/fluency/96/map.png" alt="Карта" class="btn-icon">
+    </button>
+    <div id="mapDropdown" class="dropdown-content">
+      <button id="goToFieldBtn">Поле 🌱</button>
+      <button id="goToGardenBtn">Сад 🌳</button>
+      <button id="goToPenBtn">Загон 🐄</button>
     </div>
-    <button id="shopBtn">
-      <img src="https://img.icons8.com/fluency/96/shop.png" alt="Магазин" class="btn-icon">
-    </button>
-    <button id="inventoryBtn">
-      <img src="https://img.icons8.com/fluency/96/backpack.png" alt="Инвентарь" class="btn-icon">
-    </button>
-    <button id="guildBtn">
-      <img src="https://img.icons8.com/fluency/96/castle.png" alt="Гильдия" class="btn-icon">
-    </button>
   </div>
+  <button id="shopBtn">
+    <img src="https://img.icons8.com/fluency/96/shop.png" alt="Магазин" class="btn-icon">
+  </button>
+  <button id="inventoryBtn">
+    <img src="https://img.icons8.com/fluency/96/backpack.png" alt="Инвентарь" class="btn-icon">
+  </button>
+  <button id="guildBtn">
+    <img src="https://img.icons8.com/fluency/96/castle.png" alt="Гильдия" class="btn-icon">
+  </button>
 </div>
 
     <div id="field-screen" class="screen active">
