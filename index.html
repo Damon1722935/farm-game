@@ -960,6 +960,48 @@ body {
 .map-menu-btn.is-open {
   background: rgba(255, 255, 255, 0.18) !important;
 }
+
+    /* ===== ЭКРАН КАРТЫ ===== */
+.farm-map-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+}
+.farm-map-bg {
+  width: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.map-location-btn {
+  position: absolute;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.map-location-btn img {
+  width: 72px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+}
+.map-location-btn:active {
+  transform: translate(-50%, -50%) scale(0.93);
+}
+/* Позиции на карте — подправишь при желании */
+.loc-field { left: 22%; top: 68%; }
+.loc-garden { left: 72%; top: 26%; }
+.loc-pen { left: 73%; top: 68%; }
+.loc-greenhouse { left: 35%; top: 30%; }
+    
   </style>
 </head>
 <body>
@@ -1004,16 +1046,9 @@ body {
 </div>
     
 <div class="btn-group">
-  <div class="dropdown">
-    <button id="mapBtn">
-      <img src="https://img.icons8.com/fluency/96/map.png" alt="Карта" class="btn-icon">
-    </button>
-    <div id="mapDropdown" class="dropdown-content">
-      <button id="goToFieldBtn">Поле 🌱</button>
-      <button id="goToGardenBtn">Сад 🌳</button>
-      <button id="goToPenBtn">Загон 🐄</button>
-    </div>
-  </div>
+  <button id="mapBtn">
+    <img src="https://img.icons8.com/fluency/96/map.png" alt="Карта" class="btn-icon">
+  </button>
   <button id="shopBtn">
     <img src="https://img.icons8.com/fluency/96/shop.png" alt="Магазин" class="btn-icon">
   </button>
@@ -1025,7 +1060,26 @@ body {
   </button>
 </div>
 
-    <div id="field-screen" class="screen active">
+    <div id="map-screen" class="screen active">
+  <h3>Карта фермы</h3>
+  <div class="farm-map-wrap">
+    <img src="img/map.png" alt="Карта" class="farm-map-bg" />
+    <button id="openFieldFromMapBtn" class="map-location-btn loc-field" title="Поле">
+      <img src="img/pole.png" alt="Поле" />
+    </button>
+    <button id="openGardenFromMapBtn" class="map-location-btn loc-garden" title="Сад">
+      <img src="img/apple-sad.png" alt="Сад" />
+    </button>
+    <button id="openPenFromMapBtn" class="map-location-btn loc-pen" title="Загон">
+      <img src="img/zagon.png" alt="Загон" />
+    </button>
+    <button id="openGreenhouseFromMapBtn" class="map-location-btn loc-greenhouse" title="Оранжерея">
+      <img src="img/orang.png" alt="Оранжерея" />
+    </button>
+  </div>
+</div>
+    
+    <div id="field-screen" class="screen">
       <h3>Поле</h3>
       <div id="field"></div>
       <button id="harvestBtn" class="btn-harvest" style="width:100%; margin-top:10px;">Собрать урожай</button>
