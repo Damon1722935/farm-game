@@ -229,11 +229,26 @@ const joinGuildBtn = document.getElementById('join-guild-btn');
 const leaveGuildBtn = document.getElementById('leave-guild-btn');
 const disbandGuildBtn = document.getElementById('disband-guild-btn');
 
+function setSceneBackground(screenId) {
+  const backgroundByScreen = {
+    'map-screen': 'img/background.jpg',
+    'field-screen': 'img/pole2.jpg',
+    'garden-screen': 'img/apple-sad2.jpg',
+    'pen-screen': 'img/zagon2.jpg',
+    'shop-screen': 'img/background.jpg',
+    'inventory-screen': 'img/background.jpg',
+    'guild-screen': 'img/background.jpg'
+  };
+  const bgPath = backgroundByScreen[screenId] || 'img/background.jpg';
+  document.body.style.setProperty('--scene-bg', `url('${bgPath}')`);
+}
+
 function showScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const target = document.getElementById(screenId);
   if (target) target.classList.add('active');
-
+setSceneBackground(screenId);
+  
   // ЕСЛИ ОТКРЫЛИ МАГАЗИН — СБРАСЫВАЕМ ЕГО НА ВЫБОР РАЗДЕЛОВ
   if (screenId === 'shop-screen') {
     selectShopCategory('categories');
@@ -829,6 +844,8 @@ renderShop();
 renderGuildInfo();
 renderInventory();
 renderFarmerStats();
+setSceneBackground('map-screen');
+
 (function initLoadingScreen() {
   const loadingEl = document.getElementById('loadingScreen');
   const progressFillEl = document.getElementById('loadingProgressFill');
