@@ -204,6 +204,46 @@ body {
       z-index: 3;
     }
 
+    /* БЛОК-КОНТЕЙНЕР ДЛЯ МАГАЗИНА */
+    #shop {
+      position: relative; /* Чтобы позиционировать размытый фон строго внутри магазина */
+      overflow: hidden;   /* Обрезает размытые края фона, чтобы они не вылезали наружу */
+      padding: 15px;      /* Внутренний отступ от краев магазина до карточек */
+      border-radius: 12px; /* Красивые скругленные углы */
+      border: 1.5px solid rgba(255, 255, 255, 0.2); /* Тонкая стеклянная рамочка */
+      margin-top: 10px;
+    }
+
+    /* ХИТРЫЙ ВИРТУАЛЬНЫЙ СЛОЙ С ФОНОМ */
+    #shop::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      
+      /* Картинка + темное наложение, чтобы белый текст читался идеально */
+      background-image: 
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), 
+        url('img/magazine.jpg'); 
+      
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      
+      /* Эффект размытия */
+      filter: blur(6px); 
+      
+      /* Слегка увеличиваем фон (на 10%), чтобы из-за размытия по краям не было белых "грязных" полос */
+      transform: scale(1.1); 
+      
+      z-index: 1; /* Отправляем картинку на самый задний план внутри магазина */
+    }
+
+    /* ПОДНИМАЕМ ВСЕ КАРТОЧКИ ТОВАРОВ НАД ФОНОМ */
+    #shop > * {
+      position: relative;
+      z-index: 2; /* Этот слой выше, чем фон (z-index: 1), поэтому текст НЕ размоется! */
+    }
+    
     .shop-item {
       background: rgba(255,255,255,0.1);
       padding: 12px;
