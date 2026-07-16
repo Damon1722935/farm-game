@@ -213,7 +213,6 @@ const openGreenhouseFromMapBtn = document.getElementById('openGreenhouseFromMapB
 
 // Элементы КАРТЫ и выпадающего списка
 const mapBtn = document.getElementById('mapBtn');
-const mapDropdown = document.getElementById('mapDropdown');
 
 const shopBtn = document.getElementById('shopBtn');
 const guildBtn = document.getElementById('guildBtn');
