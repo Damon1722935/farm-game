@@ -151,6 +151,12 @@ for (const key in cropsConfig) {
     inventory[key] = 0;
   }
 }
+let fertilizersInventory = JSON.parse(localStorage.getItem('farm_fertilizers')) || { growth: 0, price: 0 };
+if (typeof fertilizersInventory.growth !== 'number') fertilizersInventory.growth = 0;
+if (typeof fertilizersInventory.price !== 'number') fertilizersInventory.price = 0;
+function saveFertilizers() {
+  localStorage.setItem('farm_fertilizers', JSON.stringify(fertilizersInventory));
+}
 let farmerPoints = parseInt(localStorage.getItem('farm_farmer_points')) || 0;
 let activePlantAnimations = 0;
 
@@ -727,7 +733,7 @@ coins += reward;
   const levelResult = addFarmerPoints(crop.xpReward);
   saveProgress();
   renderField();
-  let msg = `Ты собрал ${crop.name}! Получено монет: ${crop.reward}. Очки развития: +${crop.xpReward}.`;
+let msg = `Ты собрал ${crop.name}! Получено монет: ${reward}. Очки развития: +${crop.xpReward}.`;
   if (levelResult.leveledUp) {
     msg += `\n🎉 Новый уровень фермера: ${levelResult.newLevel}!`;
   }
@@ -1001,9 +1007,12 @@ let totalXp = 0;
 
         if (timeLeft <= 0) {
           plots[i] = null;
- const reward = Math.round(crop.reward * (currentPlot.fertPriceApplied ? 1.3 : 1));
+ const reward = Math.round(crop.reward * (plotData.fertPriceApplied ? 1.3 : 1));
+plots[i] = null;
 coins += reward;
-          totalReward += crop.reward;
+totalReward += reward;
+harvestedCount++;
+totalXp += crop.xpReward;
           harvestedCount++;
           totalXp += crop.xpReward;
         }
@@ -1060,12 +1069,6 @@ renderField();
 renderShop();
 renderGuildInfo();
 renderInventory();
-let fertilizersInventory = JSON.parse(localStorage.getItem('farm_fertilizers')) || { growth: 0, price: 0 };
-if (typeof fertilizersInventory.growth !== 'number') fertilizersInventory.growth = 0;
-if (typeof fertilizersInventory.price !== 'number') fertilizersInventory.price = 0;
-function saveFertilizers() {
-  localStorage.setItem('farm_fertilizers', JSON.stringify(fertilizersInventory));
-}
 renderFarmerStats();
 setSceneBackground('map-screen');
 
