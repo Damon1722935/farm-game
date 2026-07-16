@@ -411,40 +411,47 @@ function renderShop() {
 }
 
 function renderInventory() {
-  inventoryContainer.innerHTML = ''; // Очищаем экран перед перерисовкой
-
-  for (const key in cropsConfig) {
+  inventoryContainer.innerHTML = '';
+  const availableKeys = Object.keys(cropsConfig).filter((key) => (inventory[key] || 0) > 0);
+  // Если в рюкзаке пусто
+  if (availableKeys.length === 0) {
+    inventoryContainer.innerHTML = `
+      <div class="shop-empty-message">
+        🎒 <br><br>
+        <strong>Рюкзак пуст.</strong><br>
+        Купите семена в магазине, чтобы они появились здесь.
+      </div>
+    `;
+    return;
+  }
+  // Если выбранное семя закончилось — переключаемся на первое доступное
+  if (!availableKeys.includes(selectedCropKey)) {
+    selectedCropKey = availableKeys[0];
+  }
+  for (const key of availableKeys) {
     const crop = cropsConfig[key];
-    const count = inventory[key] || 0; // Сколько семян этого типа у нас есть
-    
+    const count = inventory[key] || 0;
     const item = document.createElement('div');
     item.className = 'inventory-item';
-
-    // Если это семечко сейчас активно для посадки — подсветим золотой рамкой
-    const isSelected = (selectedCropKey === key);
+    const isSelected = selectedCropKey === key;
     if (isSelected) {
       item.style.borderColor = '#f1c40f';
       item.style.boxShadow = '0 0 8px rgba(241, 196, 15, 0.3)';
     }
-
-    // Содержимое карточки семени
     item.innerHTML = `
       <span class="inventory-name">
-        ${crop.emoji} ${crop.name} 
+        ${crop.emoji} ${crop.name}
         ${isSelected ? '<small style="color: #f1c40f; margin-left: 5px;">(Выбрано)</small>' : ''}
       </span>
       <span class="inventory-count">${count} шт.</span>
     `;
-
-    // При клике на карточку — выбираем семя активным и отправляем игрока на поле
     item.onclick = () => {
       selectedCropKey = key;
       tg.showAlert(`Вы выбрали для посадки: ${crop.name}`);
-      renderInventory(); // Перерисовываем инвентарь (чтобы рамка обновилась)
-      showScreen('field-screen'); // Перекидываем на поле
-      renderField(); // Обновляем поле
+      renderInventory();
+      showScreen('field-screen');
+      renderField();
     };
-
     inventoryContainer.appendChild(item);
   }
 }
