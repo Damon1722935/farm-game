@@ -198,8 +198,6 @@ const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
 const farmerLevelEl = document.getElementById('farmerLevel');
 const farmerPointsEl = document.getElementById('farmerPoints');
-const mapMenuBtn = document.getElementById('mapMenuBtn');
-const mapSubmenu = document.getElementById('mapSubmenu');
 const quickMenuToggle = document.getElementById('quickMenuToggle');
 const quickIcons = document.getElementById('quickIcons');
 
@@ -262,13 +260,6 @@ if (quickMenuToggle && quickIcons) {
   };
 }
 
-if (mapMenuBtn && mapSubmenu) {
-  mapMenuBtn.onclick = (e) => {
-    e.stopPropagation();
-    mapSubmenu.classList.toggle('show');
-    mapMenuBtn.classList.toggle('is-open', mapSubmenu.classList.contains('show'));
-  };
-}
 // Закрываем меню, если кликнуть в любую другую область экрана
 window.addEventListener('click', (event) => {
   // Закрытие подменю карты
@@ -291,6 +282,8 @@ window.addEventListener('click', (event) => {
 // Переходы по локациям карты
 if (goToFieldBtn) {
   goToFieldBtn.onclick = () => {
+    if (quickIcons) quickIcons.classList.remove('show');
+if (quickMenuToggle) quickMenuToggle.classList.remove('open');
     showScreen('field-screen');
     mapDropdown.classList.remove('show');
     if (mapSubmenu) mapSubmenu.classList.remove('show');
@@ -299,10 +292,11 @@ if (goToFieldBtn) {
   };
 }
 
-if (mapBtn) mapBtn.classList.remove('is-open');
 
 if (goToGardenBtn) {
   goToGardenBtn.onclick = () => {
+    if (quickIcons) quickIcons.classList.remove('show');
+if (quickMenuToggle) quickMenuToggle.classList.remove('open');
     showScreen('garden-screen');
     mapDropdown.classList.remove('show');
     if (mapSubmenu) mapSubmenu.classList.remove('show');
@@ -313,6 +307,8 @@ if (goToGardenBtn) {
 
 if (goToPenBtn) {
   goToPenBtn.onclick = () => {
+    if (quickIcons) quickIcons.classList.remove('show');
+if (quickMenuToggle) quickMenuToggle.classList.remove('open');
     showScreen('pen-screen');
     mapDropdown.classList.remove('show');
     if (mapSubmenu) mapSubmenu.classList.remove('show');
