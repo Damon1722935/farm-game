@@ -6,6 +6,7 @@
   <title>Ферма</title>
   <style>
 body {
+  --scene-bg: url('img/background.jpg');
       margin: 0;
       padding: 10px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,9 +25,9 @@ body {
       bottom: 0;
       
       /* Перенесли фон сюда и убрали капризный fixed */
-      background-image: 
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 35%), 
-        url('img/background.jpg');
+background-image:
+  linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 35%),
+  var(--scene-bg);
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -980,21 +981,51 @@ body {
 }
 .map-location-btn {
   position: absolute;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
   transform: translate(-50%, -50%);
-  transition: transform 0.15s ease, filter 0.15s ease;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 70%, rgba(255,255,255,0.02) 100%);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  animation: mapPulse 1.8s ease-in-out infinite;
 }
 .map-location-btn img {
-  width: 72px;
+  width: 74px;
   height: auto;
   display: block;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.45));
+  pointer-events: none;
+  user-select: none;
+}
+.map-location-btn::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.7);
+  white-space: nowrap;
+}
+.map-location-btn:hover {
+  box-shadow: 0 10px 22px rgba(0,0,0,0.45);
 }
 .map-location-btn:active {
-  transform: translate(-50%, -50%) scale(0.93);
+  transform: translate(-50%, -50%) scale(0.94);
+}
+@keyframes mapPulse {
+  0%, 100% { box-shadow: 0 8px 18px rgba(0,0,0,0.35), 0 0 0 0 rgba(255,255,255,0.25); }
+  50% { box-shadow: 0 10px 22px rgba(0,0,0,0.45), 0 0 0 8px rgba(255,255,255,0.06); }
 }
 /* Позиции на карте — подправишь при желании */
 .loc-field { left: 22%; top: 68%; }
@@ -1064,18 +1095,18 @@ body {
   <h3>Карта фермы</h3>
   <div class="farm-map-wrap">
     <img src="img/map.png" alt="Карта" class="farm-map-bg" />
-    <button id="openFieldFromMapBtn" class="map-location-btn loc-field" title="Поле">
-      <img src="img/pole.png" alt="Поле" />
-    </button>
-    <button id="openGardenFromMapBtn" class="map-location-btn loc-garden" title="Сад">
-      <img src="img/apple-sad.png" alt="Сад" />
-    </button>
-    <button id="openPenFromMapBtn" class="map-location-btn loc-pen" title="Загон">
-      <img src="img/zagon.png" alt="Загон" />
-    </button>
-    <button id="openGreenhouseFromMapBtn" class="map-location-btn loc-greenhouse" title="Оранжерея">
-      <img src="img/orang.png" alt="Оранжерея" />
-    </button>
+<button id="openFieldFromMapBtn" class="map-location-btn loc-field" data-label="Поле" title="Поле">
+  <img src="img/pole.png" alt="Поле" />
+</button>
+<button id="openGardenFromMapBtn" class="map-location-btn loc-garden" data-label="Сад" title="Сад">
+  <img src="img/apple-sad.png" alt="Сад" />
+</button>
+<button id="openPenFromMapBtn" class="map-location-btn loc-pen" data-label="Загон" title="Загон">
+  <img src="img/zagon.png" alt="Загон" />
+</button>
+<button id="openGreenhouseFromMapBtn" class="map-location-btn loc-greenhouse" data-label="Оранжерея" title="Оранжерея">
+  <img src="img/orang.png" alt="Оранжерея" />
+</button>
   </div>
 </div>
     
