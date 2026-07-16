@@ -278,10 +278,34 @@ body {
       z-index: 10; /* Чтобы кнопка нажималась поверх размытого фона */
     }
 
-    .shop-back-btn:active {
-      background: rgba(255, 255, 255, 0.3);
-      transform: scale(0.95);
-    }
+.shop-back-btn {
+  position: absolute;
+  left: 0;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  transition: transform 0.12s ease, background 0.2s ease;
+  z-index: 10;
+}
+.shop-back-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.shop-back-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.35);
+}
 
     .shop-categories {
       display: flex;
@@ -815,6 +839,59 @@ body {
   0%, 100% { transform: translate(-50%, -50%) translateY(0); }
   50%      { transform: translate(-50%, -50%) translateY(-2px); }
 }
+    /* ===== PATCH: Общий стиль всего экрана магазина ===== */
+#shop-screen {
+  position: relative;
+  overflow: hidden;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  margin-top: 10px;
+}
+#shop-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.68)),
+    url('img/magazine.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(6px);
+  transform: scale(1.08);
+  z-index: 1;
+}
+#shop-screen > * {
+  position: relative;
+  z-index: 2;
+}
+/* Сам блок с товарами делаем прозрачным — фон уже у #shop-screen */
+#shop {
+  position: relative;
+  overflow: visible;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  margin-top: 10px;
+  background: transparent;
+}
+#shop::before {
+  display: none;
+}
+/* Чуть усилим контраст карточек разделов */
+.category-card {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.category-name {
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.75);
+}
+.category-desc {
+  color: #e8e8e8;
+}
   </style>
 </head>
 <body>
@@ -905,7 +982,7 @@ body {
 
 <div id="shop-screen" class="screen">
       <div class="shop-header">
-        <button id="shop-back-btn" class="shop-back-btn" onclick="selectShopCategory('categories')" style="display: none;">⬅ Назад</button>
+       <button id="shop-back-btn" class="shop-back-btn" onclick="selectShopCategory('categories')" style="display: none;" aria-label="Назад" title="Назад">←</button>
         <h3 id="shop-title" style="margin: 0;">Магазин</h3>
       </div>
       
