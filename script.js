@@ -495,6 +495,7 @@ function renderField() {
     plot.className = 'plot';
 
     if (plotData) {
+      plot.classList.add('watered');
 const { cropKey, plantedAt } = plotData;
 const crop = cropsConfig[cropKey];
 if (!crop) {
@@ -547,6 +548,7 @@ plot.onclick = () => {
 
     } else {
       // --- ПУСТАЯ ГРЯДКА — ПОСАДКА С АНИМАЦИЕЙ ---
+      plot.classList.remove('watered');
      plot.textContent = '';
       plot.classList.remove('ready');
       plot.style.cursor = 'pointer';
