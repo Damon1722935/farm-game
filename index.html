@@ -5,31 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Ферма</title>
   <style>
-    body {
+body {
       margin: 0;
       padding: 10px;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: #fff;
       user-select: none;
-
-      /* НАШ НОВЫЙ КРАСИВЫЙ ФОН */
-      background-image: 
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 35%), /* Затемнение верха под меню */
-        url('img/background.jpg'); /* Твой новый файл фона */
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      background-repeat: no-repeat;
-      
       min-height: 100vh;
+      /* Убрали фон отсюда, чтобы убрать тряску на мобильных */
     }
 
     body::before {
       content: '';
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(44, 62, 80, 0.6);
-      z-index: 1;
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      bottom: 0;
+      
+      /* Перенесли фон сюда и убрали капризный fixed */
+      background-image: 
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 35%), 
+        url('img/background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      
+      /* Накладываем цвет тонирования прямо поверх фона */
+      background-color: rgba(44, 62, 80, 0.6); 
+      
+      /* Магия для мобилок: заставляем видеокарту (GPU) обрабатывать этот слой отдельно */
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+      
+      z-index: -1; /* Отправляем этот слой на самый задний план */
       pointer-events: none;
     }
 
@@ -284,7 +293,7 @@
 
     /* 1. Находим ЛЮБОЙ блок, внутри которого напрямую лежат грядки (.plot), 
        и принудительно двигаем его вниз на темную почву */
-    div:has(> .plot) {
+#field {
       margin-top: 170px !important; 
     }
 
