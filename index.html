@@ -140,12 +140,12 @@ background-image:
     }
 
     /* Анимация при наведении на обычные кнопки */
-    button:hover {
-      opacity: 0.95;
-      transform: scale(1.02);
-      filter: brightness(1.05);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
+  button:hover:not(.map-location-btn) {
+  opacity: 0.95;
+  transform: scale(1.02);
+  filter: brightness(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
 
     /* Красивый интерактивный отклик при нажатии на стеклянные кнопки */
     .btn-group button:active, .btn-group button:hover {
@@ -187,9 +187,26 @@ background-image:
   position: absolute;
   inset: 0;
   background: url('img/kucha.png') center bottom / contain no-repeat;
-  z-index: 0;
+  filter: brightness(1.16) contrast(1.08) drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+  z-index: 1;
   pointer-events: none;
 }
+    .plot::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 72%;
+  height: 18px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(255, 215, 120, 0.22) 0%, rgba(255, 215, 120, 0.08) 45%, rgba(255, 215, 120, 0) 75%);
+  pointer-events: none;
+  z-index: 0;
+}
+.plot.ready::after {
+  background: radial-gradient(ellipse at center, rgba(241, 196, 15, 0.35) 0%, rgba(241, 196, 15, 0.12) 50%, rgba(241, 196, 15, 0) 80%);
+}
+    
 .plot > * {
   position: relative;
   z-index: 2;
@@ -465,11 +482,6 @@ background-image:
       font-weight: bold;
     }
 
-    /* 1. Находим ЛЮБОЙ блок, внутри которого напрямую лежат грядки (.plot), 
-       и принудительно двигаем его вниз на темную почву */
-#field {
-      margin-top: 170px !important; 
-    }
 
     /* 2. На всякий случай убираем жесткое вертикальное центрирование экрана, 
        чтобы элементы могли свободно смещаться вниз */
@@ -1004,6 +1016,24 @@ background-image:
   box-shadow: 0 8px 18px rgba(0,0,0,0.35);
   transition: box-shadow 0.2s ease;
 }
+    .farm-map-wrap .map-location-btn,
+.farm-map-wrap .map-location-btn:hover,
+.farm-map-wrap .map-location-btn:active {
+  transform: translate(-50%, -50%) !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+.farm-map-wrap .map-location-btn {
+  transition: box-shadow 0.2s ease !important;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.farm-map-wrap .map-location-btn img,
+.farm-map-wrap .map-location-btn:hover img,
+.farm-map-wrap .map-location-btn:active img {
+  transform: none !important;
+}
+    
 .map-location-btn img {
   width: 74px;
   height: auto;
