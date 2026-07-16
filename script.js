@@ -198,13 +198,14 @@ const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
 const farmerLevelEl = document.getElementById('farmerLevel');
 const farmerPointsEl = document.getElementById('farmerPoints');
+const openFieldFromMapBtn = document.getElementById('openFieldFromMapBtn');
+const openGardenFromMapBtn = document.getElementById('openGardenFromMapBtn');
+const openPenFromMapBtn = document.getElementById('openPenFromMapBtn');
+const openGreenhouseFromMapBtn = document.getElementById('openGreenhouseFromMapBtn');
 
 // Элементы КАРТЫ и выпадающего списка
 const mapBtn = document.getElementById('mapBtn');
 const mapDropdown = document.getElementById('mapDropdown');
-const goToFieldBtn = document.getElementById('goToFieldBtn');
-const goToGardenBtn = document.getElementById('goToGardenBtn');
-const goToPenBtn = document.getElementById('goToPenBtn');
 
 const shopBtn = document.getElementById('shopBtn');
 const guildBtn = document.getElementById('guildBtn');
@@ -239,68 +240,50 @@ function showScreen(screenId) {
   }
 }
 
-// === ЛОГИКА ВЫПАДАЮЩЕГО СПИСКА КАРТЫ ===
-
-// Закрываем меню, если кликнуть в любую другую область экрана
-window.addEventListener('click', (event) => {
-  // Закрытие подменю карты
-  if (mapDropdown && mapDropdown.classList.contains('show')) {
-    if (!event.target.matches('#mapBtn') && !event.target.closest('#mapBtn')) {
-      mapDropdown.classList.remove('show');
-    }
-  }
-});
-
-// Переходы по локациям карты
-if (goToFieldBtn) {
-  goToFieldBtn.onclick = () => {
+// === НОВАЯ НАВИГАЦИЯ: КАРТА КАК ОТДЕЛЬНЫЙ ЭКРАН ===
+if (mapBtn) {
+  mapBtn.onclick = () => {
+    showScreen('map-screen');
+  };
+}
+if (shopBtn) {
+  shopBtn.onclick = () => {
+    renderShop();
+    showScreen('shop-screen');
+  };
+}
+if (guildBtn) {
+  guildBtn.onclick = () => {
+    renderGuildInfo();
+    showScreen('guild-screen');
+  };
+}
+if (inventoryBtn) {
+  inventoryBtn.onclick = () => {
+    renderInventory();
+    showScreen('inventory-screen');
+  };
+}
+if (openFieldFromMapBtn) {
+  openFieldFromMapBtn.onclick = () => {
     showScreen('field-screen');
-    mapDropdown.classList.remove('show');
-    if (mapSubmenu) mapSubmenu.classList.remove('show');
-    if (mapMenuBtn) mapMenuBtn.classList.remove('is-open');
-    if (mapBtn) mapBtn.classList.remove('is-open');
   };
 }
-
-
-if (goToGardenBtn) {
-  goToGardenBtn.onclick = () => {
+if (openGardenFromMapBtn) {
+  openGardenFromMapBtn.onclick = () => {
     showScreen('garden-screen');
-    mapDropdown.classList.remove('show');
-    if (mapSubmenu) mapSubmenu.classList.remove('show');
-    if (mapMenuBtn) mapMenuBtn.classList.remove('is-open');
-    if (mapBtn) mapBtn.classList.remove('is-open');
   };
 }
-
-if (goToPenBtn) {
-  goToPenBtn.onclick = () => {
+if (openPenFromMapBtn) {
+  openPenFromMapBtn.onclick = () => {
     showScreen('pen-screen');
-    mapDropdown.classList.remove('show');
-    if (mapSubmenu) mapSubmenu.classList.remove('show');
-    if (mapMenuBtn) mapMenuBtn.classList.remove('is-open');
-    if (mapBtn) mapBtn.classList.remove('is-open');
   };
 }
-
-// Переходы на другие экраны (при переходе закрываем выпадающее меню на всякий случай)
-shopBtn.onclick = () => {
-  if (mapDropdown) mapDropdown.classList.remove('show');
-  renderShop(); 
-  showScreen('shop-screen'); 
-};
-
-guildBtn.onclick = () => {
-  if (mapDropdown) mapDropdown.classList.remove('show');
-  renderGuildInfo(); 
-  showScreen('guild-screen'); 
-};
-
-inventoryBtn.onclick = () => {
-  if (mapDropdown) mapDropdown.classList.remove('show');
-  renderInventory(); 
-  showScreen('inventory-screen'); 
-};
+if (openGreenhouseFromMapBtn) {
+  openGreenhouseFromMapBtn.onclick = () => {
+    tg.showAlert('Оранжерея пока в разработке 🛠️');
+  };
+}
 
 function getTimeLeft(plantedAt, growTimeSeconds) {
   const now = Date.now();
