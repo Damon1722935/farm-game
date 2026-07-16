@@ -1095,7 +1095,110 @@ background-image:
 .loc-garden { left: 56%; top: 26%; }
 .loc-pen { left: 73%; top: 50%; }
 .loc-greenhouse { left: 45%; top: 70%; }
-    
+
+    /* ===== Удобрения: панель ===== */
+.fertilizer-panel {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.fert-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 74px;
+  user-select: none;
+  touch-action: none;
+}
+.fert-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.fert-icon img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.fert-count {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.fert-drag-ghost {
+  position: fixed;
+  width: 56px;
+  height: 56px;
+  margin-left: -28px;
+  margin-top: -28px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.22);
+  border: 1px solid rgba(255,255,255,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  pointer-events: none;
+}
+/* Иконки-метки удобрений на грядке */
+.plot-fert-badges {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  display: flex;
+  gap: 3px;
+  z-index: 4;
+}
+.plot-fert-badge {
+  font-size: 11px;
+  background: rgba(0,0,0,0.55);
+  border-radius: 6px;
+  padding: 1px 4px;
+}
+/* Анимация посыпания */
+.fert-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #d2b48c;
+  opacity: 0.9;
+  pointer-events: none;
+  animation: fertFall 600ms ease-out forwards;
+  z-index: 20;
+}
+@keyframes fertFall {
+  0% { transform: translateY(-16px) scale(1); opacity: 0.9; }
+  100% { transform: translateY(18px) scale(0.6); opacity: 0; }
+}
+.plus30 {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  color: #ffd166;
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+  z-index: 25;
+  animation: plusFloat 900ms ease-out forwards;
+}
+@keyframes plusFloat {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.9); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -16px) scale(1.05); }
+}
   </style>
 </head>
 <body>
@@ -1163,6 +1266,7 @@ background-image:
     <div id="field-screen" class="screen">
       <h3>Поле</h3>
       <div id="field"></div>
+      <div id="fertilizerPanel" class="fertilizer-panel" style="display:none;"></div>
       <button id="harvestBtn" class="btn-harvest" style="width:100%; margin-top:10px;">Собрать урожай</button>
     </div>
 
@@ -1214,6 +1318,14 @@ background-image:
         </div>
       </div>
 
+  <div class="category-card" onclick="selectShopCategory('supplies')">
+  <span class="category-emoji">🧪</span>
+  <div class="category-info">
+    <span class="category-name">Хозтовары</span>
+    <span class="category-desc">Удобрения и улучшения</span>
+  </div>
+</div>
+  
       <div id="shop" style="display: none;"></div>
     </div>
 
