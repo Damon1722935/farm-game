@@ -106,6 +106,7 @@ const cropsConfig = {
   }
 };
 const farmerLevelThresholds = [0, 300, 700, 1500, 3000];
+const PLOTS_COUNT = 8;
 
 // Сброс данных при смене версии
 const currentVersion = 'v2.6';
@@ -125,7 +126,7 @@ if (storedVersion !== currentVersion) {
 }
 
 let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
-let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(6).fill(null);
+let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(PLOTS_COUNT).fill(null);
 let selectedCropKey = 'dill';
 // Инвентарь семян (по умолчанию у игрока 0 семян каждого типа)
 let inventory = JSON.parse(localStorage.getItem('farm_inventory')) || {};
@@ -137,7 +138,14 @@ for (const key in cropsConfig) {
 let farmerPoints = parseInt(localStorage.getItem('farm_farmer_points')) || 0;
 let activePlantAnimations = 0;
 
-plots = (Array.isArray(plots) ? plots : Array(6).fill(null)).map((plot) => {
+if (!Array.isArray(plots)) {
+  plots = Array(PLOTS_COUNT).fill(null);
+}
+plots = plots.slice(0, PLOTS_COUNT);
+while (plots.length < PLOTS_COUNT) {
+  plots.push(null);
+}
+plots = plots.map((plot) => {
   if (!plot) return null;
   const hasValidCrop = typeof plot.cropKey === 'string' && !!cropsConfig[plot.cropKey];
   const hasValidTime = typeof plot.plantedAt === 'number' && Number.isFinite(plot.plantedAt);
@@ -533,7 +541,7 @@ plot.onclick = () => {
 
     } else {
       // --- ПУСТАЯ ГРЯДКА — ПОСАДКА С АНИМАЦИЕЙ ---
-      plot.textContent = '🌱';
+     plot.textContent = '';
       plot.classList.remove('ready');
       plot.style.cursor = 'pointer';
       plot.style.opacity = '1';
