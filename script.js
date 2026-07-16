@@ -105,11 +105,26 @@ const cropsConfig = {
     xpReward: 600
   }
 };
+
+const fertilizersConfig = {
+  growth: {
+    name: 'Удобрение Рост+',
+    price: 50,
+    icon: 'img/udobr-rost.png',
+    effectText: '-50% времени'
+  },
+  price: {
+    name: 'Удобрение Цена+',
+    price: 50,
+    icon: 'img/udobr-price.png',
+    effectText: '+30% цены'
+  }
+};
 const farmerLevelThresholds = [0, 300, 700, 1500, 3000];
 const PLOTS_COUNT = 8;
 
 // Сброс данных при смене версии
-const currentVersion = 'v2.6';
+const currentVersion = 'v2.7';
 const storedVersion = localStorage.getItem('farm_version');
 if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_coins');
@@ -121,6 +136,7 @@ if (storedVersion !== currentVersion) {
   localStorage.removeItem('farm_guild_points');
   localStorage.removeItem('farm_inventory');
   localStorage.removeItem('farm_farmer_points');
+  localStorage.removeItem('farm_fertilizers');
   localStorage.setItem('farm_version', currentVersion);
   console.log('🧹 Данные сброшены под новую версию игры.');
 }
@@ -149,6 +165,8 @@ plots = plots.map((plot) => {
   if (!plot) return null;
   const hasValidCrop = typeof plot.cropKey === 'string' && !!cropsConfig[plot.cropKey];
   const hasValidTime = typeof plot.plantedAt === 'number' && Number.isFinite(plot.plantedAt);
+  plot.fertGrowthApplied = !!plot.fertGrowthApplied;
+plot.fertPriceApplied = !!plot.fertPriceApplied;
   return hasValidCrop && hasValidTime ? plot : null;
 });
 
@@ -210,6 +228,7 @@ const openFieldFromMapBtn = document.getElementById('openFieldFromMapBtn');
 const openGardenFromMapBtn = document.getElementById('openGardenFromMapBtn');
 const openPenFromMapBtn = document.getElementById('openPenFromMapBtn');
 const openGreenhouseFromMapBtn = document.getElementById('openGreenhouseFromMapBtn');
+const fertilizerPanel = document.getElementById('fertilizerPanel');
 
 // Элементы КАРТЫ и выпадающего списка
 const mapBtn = document.getElementById('mapBtn');
@@ -255,6 +274,7 @@ function showScreen(screenId) {
   const target = document.getElementById(screenId);
   if (target) target.classList.add('active');
 setSceneBackground(screenId);
+  renderFertilizerPanel();
   
   // ЕСЛИ ОТКРЫЛИ МАГАЗИН — СБРАСЫВАЕМ ЕГО НА ВЫБОР РАЗДЕЛОВ
   if (screenId === 'shop-screen') {
@@ -409,26 +429,60 @@ function renderShop() {
   }
   coinsEl.textContent = coins;
 }
+function renderSuppliesShop() {
+  shopContainer.innerHTML = '';
+  const items = [
+    { key: 'growth', cfg: fertilizersConfig.growth },
+    { key: 'price', cfg: fertilizersConfig.price }
+  ];
+  items.forEach(({ key, cfg }) => {
+    const row = document.createElement('div');
+    row.className = 'shop-item';
+    row.innerHTML = `
+      <div class="shop-left">
+        <span class="shop-name">🧪 ${cfg.name}</span>
+        <small style="opacity:.8; font-size:11px;">${cfg.effectText} · У вас: ${fertilizersInventory[key]} шт.</small>
+      </div>
+      <div class="shop-right">
+        <button class="buy-btn">Купить за ${cfg.price}💰</button>
+      </div>
+    `;
+    const btn = row.querySelector('.buy-btn');
+    btn.disabled = coins < cfg.price;
+    btn.onclick = () => {
+      if (coins < cfg.price) {
+        tg.showAlert('Не хватает монет.');
+        return;
+      }
+      coins -= cfg.price;
+      fertilizersInventory[key] += 1;
+      saveProgress();
+      saveFertilizers();
+      renderSuppliesShop();
+      coinsEl.textContent = coins;
+    };
+    shopContainer.appendChild(row);
+  });
+}
 
 function renderInventory() {
   inventoryContainer.innerHTML = '';
-  const availableKeys = Object.keys(cropsConfig).filter((key) => (inventory[key] || 0) > 0);
-  // Если в рюкзаке пусто
-  if (availableKeys.length === 0) {
+  const seedKeys = Object.keys(cropsConfig).filter((key) => (inventory[key] || 0) > 0);
+  const hasFerts = (fertilizersInventory.growth || 0) > 0 || (fertilizersInventory.price || 0) > 0;
+  if (seedKeys.length === 0 && !hasFerts) {
     inventoryContainer.innerHTML = `
       <div class="shop-empty-message">
         🎒 <br><br>
         <strong>Рюкзак пуст.</strong><br>
-        Купите семена в магазине, чтобы они появились здесь.
+        Купите семена или удобрения в магазине.
       </div>
     `;
     return;
   }
-  // Если выбранное семя закончилось — переключаемся на первое доступное
-  if (!availableKeys.includes(selectedCropKey)) {
-    selectedCropKey = availableKeys[0];
+  if (seedKeys.length > 0 && !seedKeys.includes(selectedCropKey)) {
+    selectedCropKey = seedKeys[0];
   }
-  for (const key of availableKeys) {
+  seedKeys.forEach((key) => {
     const crop = cropsConfig[key];
     const count = inventory[key] || 0;
     const item = document.createElement('div');
@@ -439,10 +493,7 @@ function renderInventory() {
       item.style.boxShadow = '0 0 8px rgba(241, 196, 15, 0.3)';
     }
     item.innerHTML = `
-      <span class="inventory-name">
-        ${crop.emoji} ${crop.name}
-        ${isSelected ? '<small style="color: #f1c40f; margin-left: 5px;">(Выбрано)</small>' : ''}
-      </span>
+      <span class="inventory-name">${crop.emoji} ${crop.name} ${isSelected ? '<small style="color:#f1c40f;margin-left:5px;">(Выбрано)</small>' : ''}</span>
       <span class="inventory-count">${count} шт.</span>
     `;
     item.onclick = () => {
@@ -453,6 +504,24 @@ function renderInventory() {
       renderField();
     };
     inventoryContainer.appendChild(item);
+  });
+  if (hasFerts) {
+    const title = document.createElement('h4');
+    title.textContent = 'Удобрения';
+    title.style.margin = '12px 0 8px';
+    inventoryContainer.appendChild(title);
+    ['growth', 'price'].forEach((key) => {
+      const count = fertilizersInventory[key] || 0;
+      if (count <= 0) return;
+      const cfg = fertilizersConfig[key];
+      const item = document.createElement('div');
+      item.className = 'inventory-item';
+      item.innerHTML = `
+        <span class="inventory-name">🧪 ${cfg.name}</span>
+        <span class="inventory-count">${count} шт.</span>
+      `;
+      inventoryContainer.appendChild(item);
+    });
   }
 }
 function getFarmerLevelByPoints(points) {
@@ -487,13 +556,126 @@ function addFarmerPoints(pointsToAdd) {
   };
 }
 
+function renderFertilizerPanel() {
+  if (!fertilizerPanel) return;
+  const isField = document.getElementById('field-screen')?.classList.contains('active');
+  const isGarden = document.getElementById('garden-screen')?.classList.contains('active');
+  if (!isField && !isGarden) {
+    fertilizerPanel.style.display = 'none';
+    return;
+  }
+  fertilizerPanel.style.display = 'flex';
+  fertilizerPanel.innerHTML = `
+    <div class="fert-item">
+      <div class="fert-icon" data-fert-type="growth" title="Рост+">
+        <img src="${fertilizersConfig.growth.icon}" alt="Рост+" onerror="this.style.display='none'; this.parentNode.textContent='⚡';">
+      </div>
+      <div class="fert-count">x${fertilizersInventory.growth}</div>
+    </div>
+    <div class="fert-item">
+      <div class="fert-icon" data-fert-type="price" title="Цена+">
+        <img src="${fertilizersConfig.price.icon}" alt="Цена+" onerror="this.style.display='none'; this.parentNode.textContent='💰';">
+      </div>
+      <div class="fert-count">x${fertilizersInventory.price}</div>
+    </div>
+  `;
+  bindFertilizerDrag();
+}
+function bindFertilizerDrag() {
+  if (!fertilizerPanel) return;
+  fertilizerPanel.querySelectorAll('.fert-icon').forEach((iconEl) => {
+    iconEl.onpointerdown = (e) => {
+      const fertType = iconEl.dataset.fertType;
+      if (!fertType || (fertilizersInventory[fertType] || 0) <= 0) {
+        tg.showAlert('Нет этого удобрения в рюкзаке.');
+        return;
+      }
+      const ghost = document.createElement('div');
+      ghost.className = 'fert-drag-ghost';
+      const clone = iconEl.cloneNode(true);
+      ghost.appendChild(clone);
+      document.body.appendChild(ghost);
+      const move = (ev) => {
+        ghost.style.left = `${ev.clientX}px`;
+        ghost.style.top = `${ev.clientY}px`;
+      };
+      const up = (ev) => {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        const target = document.elementFromPoint(ev.clientX, ev.clientY);
+        const plotEl = target ? target.closest('.plot') : null;
+        if (!plotEl || !plotEl.dataset.index) {
+          ghost.remove();
+          return;
+        }
+        const plotIndex = Number(plotEl.dataset.index);
+        applyFertilizerToPlot(plotIndex, fertType, plotEl);
+        ghost.remove();
+      };
+      move(e);
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+    };
+  });
+}
+function showFertilizerParticles(plotEl) {
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('span');
+    p.className = 'fert-particle';
+    p.style.left = `${20 + Math.random() * 60}%`;
+    p.style.top = `${10 + Math.random() * 20}%`;
+    p.style.animationDelay = `${Math.random() * 160}ms`;
+    plotEl.appendChild(p);
+    setTimeout(() => p.remove(), 700);
+  }
+}
+function showPlus30(plotEl) {
+  const label = document.createElement('div');
+  label.className = 'plus30';
+  label.textContent = '+30%';
+  plotEl.appendChild(label);
+  setTimeout(() => label.remove(), 900);
+}
+function applyFertilizerToPlot(plotIndex, fertType, plotEl) {
+  const plotData = plots[plotIndex];
+  if (!plotData) {
+    tg.showAlert('Сначала посадите растение на эту грядку.');
+    return;
+  }
+  if (fertType === 'growth') {
+    if (plotData.fertGrowthApplied) {
+      tg.showAlert('Рост+ уже применялся к этой грядке.');
+      return;
+    }
+    const crop = cropsConfig[plotData.cropKey];
+    const now = Date.now();
+    const elapsedSec = Math.floor((now - plotData.plantedAt) / 1000);
+    const remaining = Math.max(0, crop.growTime - elapsedSec);
+    const newRemaining = Math.floor(remaining * 0.5);
+    plotData.plantedAt = now - (crop.growTime - newRemaining) * 1000;
+    plotData.fertGrowthApplied = true;
+  }
+  if (fertType === 'price') {
+    if (plotData.fertPriceApplied) {
+      tg.showAlert('Цена+ уже применялась к этой грядке.');
+      return;
+    }
+    plotData.fertPriceApplied = true;
+    showPlus30(plotEl);
+  }
+  fertilizersInventory[fertType] -= 1;
+  saveFertilizers();
+  saveProgress();
+  showFertilizerParticles(plotEl);
+  renderField();
+}
+
 function renderField() {
   field.innerHTML = '';
-
   plots.forEach((plotData, i) => {
     const plot = document.createElement('div');
     plot.className = 'plot';
-
+plot.dataset.index = String(i);
     if (plotData) {
       plot.classList.add('watered');
 const { cropKey, plantedAt } = plotData;
@@ -513,7 +695,23 @@ plot.textContent = crop.emoji;
       timerEl.className = 'plot-timer';
       timerEl.textContent = isReady ? 'ГОТОВО' : formatTime(timeLeft);
       plot.appendChild(timerEl);
-
+const badges = document.createElement('div');
+badges.className = 'plot-fert-badges';
+if (plotData.fertGrowthApplied) {
+  const b = document.createElement('span');
+  b.className = 'plot-fert-badge';
+  b.textContent = '⚡';
+  badges.appendChild(b);
+}
+if (plotData.fertPriceApplied) {
+  const b = document.createElement('span');
+  b.className = 'plot-fert-badge';
+  b.textContent = '💰';
+  badges.appendChild(b);
+}
+if (badges.children.length > 0) {
+  plot.appendChild(badges);
+}
       // Клик по готовой грядке — поштучный сбор
 plot.onclick = () => {
   const currentPlot = plots[i];
@@ -524,7 +722,8 @@ plot.onclick = () => {
     return;
   }
   plots[i] = null;
-  coins += crop.reward;
+ const reward = Math.round(crop.reward * (currentPlot.fertPriceApplied ? 1.3 : 1));
+coins += reward;
   const levelResult = addFarmerPoints(crop.xpReward);
   saveProgress();
   renderField();
@@ -603,6 +802,7 @@ plot.onclick = async () => {
 
   coinsEl.textContent = coins;
   renderFarmerStats();
+  renderFertilizerPanel();
 }
 
 // --- Гильдия ---
@@ -801,7 +1001,8 @@ let totalXp = 0;
 
         if (timeLeft <= 0) {
           plots[i] = null;
-          coins += crop.reward;
+ const reward = Math.round(crop.reward * (currentPlot.fertPriceApplied ? 1.3 : 1));
+coins += reward;
           totalReward += crop.reward;
           harvestedCount++;
           totalXp += crop.xpReward;
@@ -859,6 +1060,12 @@ renderField();
 renderShop();
 renderGuildInfo();
 renderInventory();
+let fertilizersInventory = JSON.parse(localStorage.getItem('farm_fertilizers')) || { growth: 0, price: 0 };
+if (typeof fertilizersInventory.growth !== 'number') fertilizersInventory.growth = 0;
+if (typeof fertilizersInventory.price !== 'number') fertilizersInventory.price = 0;
+function saveFertilizers() {
+  localStorage.setItem('farm_fertilizers', JSON.stringify(fertilizersInventory));
+}
 renderFarmerStats();
 setSceneBackground('map-screen');
 
@@ -958,6 +1165,11 @@ function selectShopCategory(category) {
         </div>
       `;
     }
+    else if (category === 'supplies') {
+  titleEl.textContent = 'Магазин: Хозтовары';
+  shopEl.style.display = 'grid';
+  renderSuppliesShop();
+}
   }
 }
 
