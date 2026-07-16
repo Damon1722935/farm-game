@@ -485,7 +485,6 @@ const crop = cropsConfig[cropKey];
 if (!crop) {
   plots[i] = null;
   saveProgress();
-  renderField();
   return;
 }
 plot.textContent = crop.emoji;
@@ -776,6 +775,11 @@ let totalXp = 0;
       if (plotData) {
         const { cropKey, plantedAt } = plotData;
         const crop = cropsConfig[cropKey];
+        if (!crop) {
+  plots[i] = null;
+  saveProgress();
+  return;
+}
         const timeLeft = getTimeLeft(plantedAt, crop.growTime);
 
         if (timeLeft <= 0) {
