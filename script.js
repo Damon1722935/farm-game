@@ -141,7 +141,7 @@ if (storedVersion !== currentVersion) {
   console.log('🧹 Данные сброшены под новую версию игры.');
 }
 
-let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 100;
+let coins = localStorage.getItem('farm_coins') ? parseInt(localStorage.getItem('farm_coins')) : 200;
 let plots = JSON.parse(localStorage.getItem('farm_plots')) || Array(PLOTS_COUNT).fill(null);
 let selectedCropKey = 'dill';
 // Инвентарь семян (по умолчанию у игрока 0 семян каждого типа)
