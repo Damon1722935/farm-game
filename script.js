@@ -198,8 +198,6 @@ const coinsEl = document.getElementById('coins');
 const field = document.getElementById('field');
 const farmerLevelEl = document.getElementById('farmerLevel');
 const farmerPointsEl = document.getElementById('farmerPoints');
-const quickMenuToggle = document.getElementById('quickMenuToggle');
-const quickIcons = document.getElementById('quickIcons');
 
 // Элементы КАРТЫ и выпадающего списка
 const mapBtn = document.getElementById('mapBtn');
@@ -243,23 +241,6 @@ function showScreen(screenId) {
 
 // === ЛОГИКА ВЫПАДАЮЩЕГО СПИСКА КАРТЫ ===
 
-// Открытие/закрытие меню по клику на кнопку Карта
-if (mapBtn && mapDropdown) {
-  mapBtn.onclick = (e) => {
-    e.stopPropagation();
-    mapDropdown.classList.toggle('show');
-    mapBtn.classList.toggle('is-open', mapDropdown.classList.contains('show'));
-  };
-}
-
-if (quickMenuToggle && quickIcons) {
-  quickMenuToggle.onclick = (e) => {
-    e.stopPropagation();
-    quickIcons.classList.toggle('show');
-    quickMenuToggle.classList.toggle('open', quickIcons.classList.contains('show'));
-  };
-}
-
 // Закрываем меню, если кликнуть в любую другую область экрана
 window.addEventListener('click', (event) => {
   // Закрытие подменю карты
@@ -268,22 +249,11 @@ window.addEventListener('click', (event) => {
       mapDropdown.classList.remove('show');
     }
   }
-  // Закрытие блока иконок по клику вне quickFab
-  if (quickIcons && quickIcons.classList.contains('show')) {
-    const clickInsideQuick = event.target.closest('#quickFab');
-    if (!clickInsideQuick) {
-      quickIcons.classList.remove('show');
-      if (quickMenuToggle) quickMenuToggle.classList.remove('open');
-      if (mapDropdown) mapDropdown.classList.remove('show');
-    }
-  }
 });
 
 // Переходы по локациям карты
 if (goToFieldBtn) {
   goToFieldBtn.onclick = () => {
-    if (quickIcons) quickIcons.classList.remove('show');
-if (quickMenuToggle) quickMenuToggle.classList.remove('open');
     showScreen('field-screen');
     mapDropdown.classList.remove('show');
     if (mapSubmenu) mapSubmenu.classList.remove('show');
@@ -295,8 +265,6 @@ if (quickMenuToggle) quickMenuToggle.classList.remove('open');
 
 if (goToGardenBtn) {
   goToGardenBtn.onclick = () => {
-    if (quickIcons) quickIcons.classList.remove('show');
-if (quickMenuToggle) quickMenuToggle.classList.remove('open');
     showScreen('garden-screen');
     mapDropdown.classList.remove('show');
     if (mapSubmenu) mapSubmenu.classList.remove('show');
@@ -307,8 +275,6 @@ if (quickMenuToggle) quickMenuToggle.classList.remove('open');
 
 if (goToPenBtn) {
   goToPenBtn.onclick = () => {
-    if (quickIcons) quickIcons.classList.remove('show');
-if (quickMenuToggle) quickMenuToggle.classList.remove('open');
     showScreen('pen-screen');
     mapDropdown.classList.remove('show');
     if (mapSubmenu) mapSubmenu.classList.remove('show');
@@ -319,24 +285,18 @@ if (quickMenuToggle) quickMenuToggle.classList.remove('open');
 
 // Переходы на другие экраны (при переходе закрываем выпадающее меню на всякий случай)
 shopBtn.onclick = () => {
-  if (quickIcons) quickIcons.classList.remove('show');
-if (quickMenuToggle) quickMenuToggle.classList.remove('open');
   if (mapDropdown) mapDropdown.classList.remove('show');
   renderShop(); 
   showScreen('shop-screen'); 
 };
 
 guildBtn.onclick = () => {
-  if (quickIcons) quickIcons.classList.remove('show');
-if (quickMenuToggle) quickMenuToggle.classList.remove('open');
   if (mapDropdown) mapDropdown.classList.remove('show');
   renderGuildInfo(); 
   showScreen('guild-screen'); 
 };
 
 inventoryBtn.onclick = () => {
-  if (quickIcons) quickIcons.classList.remove('show');
-if (quickMenuToggle) quickMenuToggle.classList.remove('open');
   if (mapDropdown) mapDropdown.classList.remove('show');
   renderInventory(); 
   showScreen('inventory-screen'); 
