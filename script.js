@@ -564,12 +564,11 @@ function addFarmerPoints(pointsToAdd) {
 
 function renderFertilizerPanel() {
   if (!fertilizerPanel) return;
-  const isField = document.getElementById('field-screen')?.classList.contains('active');
-  const isGarden = document.getElementById('garden-screen')?.classList.contains('active');
-  if (!isField && !isGarden) {
-    fertilizerPanel.style.display = 'none';
-    return;
-  }
+const isField = document.getElementById('field-screen')?.classList.contains('active');
+if (!isField) {
+  fertilizerPanel.style.display = 'none';
+  return;
+}
   fertilizerPanel.style.display = 'flex';
   fertilizerPanel.innerHTML = `
     <div class="fert-item">
