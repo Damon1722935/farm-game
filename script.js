@@ -444,9 +444,12 @@ function renderSuppliesShop() {
   items.forEach(({ key, cfg }) => {
     const row = document.createElement('div');
     row.className = 'shop-item';
-    row.innerHTML = `
+row.innerHTML = `
       <div class="shop-left">
-        <span class="shop-name">🧪 ${cfg.name}</span>
+        <span class="shop-name" style="display: flex; align-items: center; gap: 6px;">
+          <img src="${cfg.icon}" alt="icon" style="width: 24px; height: 24px; object-fit: contain;"> 
+          ${cfg.name}
+        </span>
         <small style="opacity:.8; font-size:11px;">${cfg.effectText} · У вас: ${fertilizersInventory[key]} шт.</small>
       </div>
       <div class="shop-right">
